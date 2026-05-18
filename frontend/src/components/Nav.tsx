@@ -26,7 +26,7 @@ export default function Nav() {
               <path d="M12 21s-7-4.5-9.5-9C0.5 8 3 4 7 4c2 0 3.5 1 5 3 1.5-2 3-3 5-3 4 0 6.5 4 4.5 8-2.5 4.5-9.5 9-9.5 9z" />
             </svg>
           </span>
-          <span className="brand-name">Cardio<span>Predict</span></span>
+          <span className="brand-name">Card<span>IA</span>c</span>
         </Link>
 
         <ul className="nav-links">
