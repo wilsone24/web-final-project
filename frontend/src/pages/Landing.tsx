@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useRef } from 'react';
-import useReveal from '../hooks/useReveal.js';
+import { useEffect, useRef, type ReactNode } from 'react';
+import useReveal from '../hooks/useReveal';
 
 function ArrowRight() {
   return (
@@ -10,8 +10,14 @@ function ArrowRight() {
   );
 }
 
-function CounterStat({ target, suffix = '', children }) {
-  const ref = useRef(null);
+interface CounterStatProps {
+  target: number;
+  suffix?: string;
+  children: ReactNode;
+}
+
+function CounterStat({ target, suffix = '', children }: CounterStatProps) {
+  const ref = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     const el = ref.current;
     if (!el || !('IntersectionObserver' in window)) {
@@ -19,15 +25,15 @@ function CounterStat({ target, suffix = '', children }) {
       return;
     }
     const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
+      entries.forEach((e) => {
         if (!e.isIntersecting) return;
         const duration = 1400;
         const start = performance.now();
-        const tick = (t) => {
+        const tick = (t: number) => {
           const p = Math.min(1, (t - start) / duration);
           const eased = 1 - Math.pow(1 - p, 3);
           const v = Math.floor(target * eased);
-          el.textContent = (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : String(v)) + suffix;
+          if (el) el.textContent = (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : String(v)) + suffix;
           if (p < 1) requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
@@ -201,12 +207,12 @@ export default function Landing() {
           </div>
 
           <div className="pipeline">
-            {[
+            {([
               ['1', 'Captura', 'Datos clínicos llegan a la capa bronze tal cual, con esquema tipado.'],
               ['2', 'Refinamiento', 'Silver imputa nulos, elimina outliers y deriva BMI, presión de pulso, hipertensión.'],
               ['3', 'Entrenamiento', 'XGBoost vs Random Forest con Optuna, validación cruzada y umbral óptimo.'],
               ['4', 'Predicción', 'El campeón se expone como endpoint REST que tú consumes desde aquí.'],
-            ].map(([n, t, d]) => (
+            ] as const).map(([n, t, d]) => (
               <div className="pipe-step reveal" key={n}>
                 <div className="pipe-num">{n}</div>
                 <h3>{t}</h3>
@@ -271,11 +277,20 @@ export default function Landing() {
         <div className="container">
           <div className="cta-card glass reveal">
             <h2>¿Listo para probar el modelo?</h2>
-            <p>Ingresa tus signos vitales y perfil clínico. CardioPredict te devolverá la probabilidad estimada de enfermedad cardiovascular en segundos.</p>
-            <Link to="/predict" className="btn btn-primary">
-              Iniciar predicción
-              <ArrowRight />
-            </Link>
+            <p>Ingresa tus signos vitales y obtén una predicción individual, o explora los patrones agregados de toda la población clínica en el dashboard analítico.</p>
+            <div className="hero-actions" style={{ justifyContent: 'center', marginTop: 0 }}>
+              <Link to="/predict" className="btn btn-primary">
+                Iniciar predicción
+                <ArrowRight />
+              </Link>
+              <Link to="/dashboard" className="btn btn-ghost">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 3v18h18" />
+                  <path d="M7 14l4-4 4 4 5-5" />
+                </svg>
+                Ver dashboard
+              </Link>
+            </div>
           </div>
         </div>
       </section>

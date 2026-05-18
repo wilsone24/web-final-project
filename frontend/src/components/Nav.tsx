@@ -3,16 +3,19 @@ import { useEffect, useState } from 'react';
 
 export default function Nav() {
   const location = useLocation();
-  const isPredict = location.pathname.startsWith('/predict');
-  const [scrolled, setScrolled] = useState(isPredict);
+  const isInner = location.pathname.startsWith('/predict') || location.pathname.startsWith('/dashboard');
+  const [scrolled, setScrolled] = useState<boolean>(isInner);
 
   useEffect(() => {
-    if (isPredict) { setScrolled(true); return; }
+    if (isInner) {
+      setScrolled(true);
+      return;
+    }
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
-  }, [isPredict]);
+  }, [isInner]);
 
   return (
     <header className={`nav${scrolled ? ' scrolled' : ''}`}>
@@ -27,9 +30,13 @@ export default function Nav() {
         </Link>
 
         <ul className="nav-links">
-          <li><a href={isPredict ? '/#features' : '#features'}>Plataforma</a></li>
-          <li><a href={isPredict ? '/#pipeline' : '#pipeline'}>Cómo funciona</a></li>
-          <li><a href={isPredict ? '/#architecture' : '#architecture'}>Arquitectura</a></li>
+          <li><a href={isInner ? '/#features' : '#features'}>Plataforma</a></li>
+          <li><a href={isInner ? '/#architecture' : '#architecture'}>Arquitectura</a></li>
+          <li>
+            <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'active' : ''}>
+              Dashboard
+            </NavLink>
+          </li>
           <li>
             <NavLink to="/predict" className={({ isActive }) => isActive ? 'active' : ''}>
               Predecir

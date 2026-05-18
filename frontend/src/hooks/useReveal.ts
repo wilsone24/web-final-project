@@ -1,12 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, type DependencyList } from 'react';
 
-export default function useReveal(deps = []) {
+export default function useReveal(deps: DependencyList = []): void {
   useEffect(() => {
-    const els = document.querySelectorAll('.reveal:not(.is-visible)');
+    const els = document.querySelectorAll<HTMLElement>('.reveal:not(.is-visible)');
     if (!els.length) return;
 
     if (!('IntersectionObserver' in window)) {
-      els.forEach(el => el.classList.add('is-visible'));
+      els.forEach((el) => el.classList.add('is-visible'));
       return;
     }
 
@@ -22,7 +22,7 @@ export default function useReveal(deps = []) {
       { threshold: 0.12, rootMargin: '0px 0px -40px 0px' },
     );
 
-    els.forEach(el => io.observe(el));
+    els.forEach((el) => io.observe(el));
     return () => io.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);

@@ -1,18 +1,19 @@
 import { useState, useCallback } from 'react';
-import PredictForm from '../components/PredictForm.jsx';
-import ResultPanel from '../components/ResultPanel.jsx';
-import { fetchPrediction } from '../api.js';
-import useReveal from '../hooks/useReveal.js';
+import PredictForm from '../components/PredictForm';
+import ResultPanel from '../components/ResultPanel';
+import { fetchPrediction } from '../api';
+import useReveal from '../hooks/useReveal';
+import type { PredictionPayload, PredictionResult, ResultState } from '../types';
 
 export default function Predict() {
   useReveal([]);
 
-  const [state,   setState]   = useState('empty'); // empty | loading | done | error
-  const [result,  setResult]  = useState(null);
-  const [record,  setRecord]  = useState(null);
-  const [error,   setError]   = useState('');
+  const [state,   setState]   = useState<ResultState>('empty');
+  const [result,  setResult]  = useState<PredictionResult | null>(null);
+  const [record,  setRecord]  = useState<PredictionPayload | null>(null);
+  const [error,   setError]   = useState<string>('');
 
-  const runPrediction = useCallback(async (payload) => {
+  const runPrediction = useCallback(async (payload: PredictionPayload) => {
     setRecord(payload);
     setState('loading');
     setError('');
@@ -29,7 +30,7 @@ export default function Predict() {
       setState('done');
     } catch (e) {
       console.error('[CardioPredict]', e);
-      setError(e?.message || String(e));
+      setError(e instanceof Error ? e.message : String(e));
       setState('error');
     }
   }, []);

@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
+import type { PredictFormState, PredictionPayload } from '../types';
 
-const ageGroupId = (years) => {
+const ageGroupId = (years: number): number => {
   if (years < 30) return 1;
   if (years < 45) return 2;
   if (years < 60) return 3;
@@ -8,16 +9,18 @@ const ageGroupId = (years) => {
   return 5;
 };
 
-const ageGroupLabel = (id) => ({
-  1: '<30', 2: '30-44', 3: '45-59', 4: '60-74', 5: '≥75',
-}[id] || '—');
+const ageGroupLabel = (id: number | null): string => {
+  if (id === null) return '—';
+  const map: Record<number, string> = { 1: '<30', 2: '30-44', 3: '45-59', 4: '60-74', 5: '≥75' };
+  return map[id] || '—';
+};
 
-const toNum = (v) => {
+const toNum = (v: string): number => {
   const n = parseFloat(v);
   return Number.isFinite(n) ? n : NaN;
 };
 
-const initialState = {
+const initialState: PredictFormState = {
   age: '',
   height: '',
   weight: '',
@@ -31,13 +34,32 @@ const initialState = {
   active: '1',
 };
 
-export default function PredictForm({ onSubmit, isLoading }) {
-  const [form, setForm]   = useState(initialState);
-  const [error, setError] = useState('');
+interface Computed {
+  bmi: number;
+  pp: number;
+  ageGid: number | null;
+  htn: boolean | null;
+  age: number;
+  h: number;
+  w: number;
+  sys: number;
+  dia: number;
+}
 
-  const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
+interface PredictFormProps {
+  onSubmit: (payload: PredictionPayload) => void;
+  isLoading: boolean;
+}
 
-  const computed = useMemo(() => {
+export default function PredictForm({ onSubmit, isLoading }: PredictFormProps) {
+  const [form, setForm]   = useState<PredictFormState>(initialState);
+  const [error, setError] = useState<string>('');
+
+  const set = (field: keyof PredictFormState) =>
+    (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+      setForm((f) => ({ ...f, [field]: e.target.value }));
+
+  const computed: Computed = useMemo(() => {
     const age = toNum(form.age);
     const h   = toNum(form.height);
     const w   = toNum(form.weight);
@@ -52,7 +74,7 @@ export default function PredictForm({ onSubmit, isLoading }) {
     return { bmi, pp, ageGid, htn, age, h, w, sys, dia };
   }, [form]);
 
-  function validate() {
+  function validate(): string {
     const { age, h, w, sys, dia } = computed;
     if (!Number.isFinite(age) || age < 1 || age > 120)  return 'Edad debe estar entre 1 y 120 años.';
     if (!Number.isFinite(h) || h < 100 || h > 250)      return 'Altura debe estar entre 100 y 250 cm.';
@@ -63,11 +85,11 @@ export default function PredictForm({ onSubmit, isLoading }) {
     return '';
   }
 
-  function buildPayload() {
+  function buildPayload(): PredictionPayload {
     const { age, h, w, sys, dia, bmi, pp, ageGid, htn } = computed;
     return {
       age_years:            +age.toFixed(1),
-      age_group_id:         ageGid,
+      age_group_id:         ageGid!,
       gender:               parseInt(form.gender, 10),
       height_cm:            Math.round(h),
       weight_kg:            +w.toFixed(1),
@@ -84,7 +106,7 @@ export default function PredictForm({ onSubmit, isLoading }) {
     };
   }
 
-  function handleSubmit(e) {
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const err = validate();
     if (err) {
@@ -248,7 +270,7 @@ export default function PredictForm({ onSubmit, isLoading }) {
         <div className="computed">
           <div className="lbl">Grupo edad</div>
           <div className={`val${ageWarn ? ' warn' : ''}`}>
-            {computed.ageGid ? ageGroupLabel(computed.ageGid) : '—'}
+            {ageGroupLabel(computed.ageGid)}
           </div>
         </div>
         <div className="computed">

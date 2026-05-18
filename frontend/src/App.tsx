@@ -1,17 +1,17 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
-import BgCanvas from './components/BgCanvas.jsx';
-import Nav from './components/Nav.jsx';
-import Footer from './components/Footer.jsx';
-import Landing from './pages/Landing.jsx';
-import Predict from './pages/Predict.jsx';
+import BgCanvas from './components/BgCanvas';
+import Nav from './components/Nav';
+import Footer from './components/Footer';
+import Landing from './pages/Landing';
+import Predict from './pages/Predict';
+import Dashboard from './pages/Dashboard';
 
 export default function App() {
   const location = useLocation();
 
-  // Scroll to top on route change
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    window.scrollTo({ top: 0, behavior: 'auto' });
   }, [location.pathname]);
 
   return (
@@ -21,6 +21,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/predict" element={<Predict />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="*" element={<Landing />} />
       </Routes>
       <Footer />

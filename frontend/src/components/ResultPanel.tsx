@@ -1,15 +1,24 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { PredictionPayload, PredictionResult, ResultState } from '../types';
 
 const CIRC = 2 * Math.PI * 80;
 
-function classifyRisk(p) {
+type RiskLevel = 'low' | 'mid' | 'high';
+type FactorKind = 'up' | 'down' | 'neutral';
+
+interface Factor {
+  k: FactorKind;
+  t: string;
+}
+
+function classifyRisk(p: number): RiskLevel {
   if (p < 0.35) return 'low';
   if (p < 0.65) return 'mid';
   return 'high';
 }
 
-function buildFactors(r) {
-  const items = [];
+function buildFactors(r: PredictionPayload): Factor[] {
+  const items: Factor[] = [];
   if (r.bmi >= 30)        items.push({ k: 'up',   t: `Obesidad (BMI ${r.bmi})` });
   else if (r.bmi >= 25)   items.push({ k: 'up',   t: `Sobrepeso (BMI ${r.bmi})` });
   else if (r.bmi >= 18.5) items.push({ k: 'down', t: `BMI en rango saludable (${r.bmi})` });
@@ -36,7 +45,7 @@ function buildFactors(r) {
   return items;
 }
 
-function FactorIcon({ kind }) {
+function FactorIcon({ kind }: { kind: FactorKind }) {
   if (kind === 'up') return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M7 17L17 7M17 7H8M17 7v9" />
@@ -50,10 +59,18 @@ function FactorIcon({ kind }) {
   return <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4" /></svg>;
 }
 
-export default function ResultPanel({ state, result, error, record, onReset, onRetry }) {
-  const [displayPct, setDisplayPct] = useState(0);
+interface ResultPanelProps {
+  state: ResultState;
+  result: PredictionResult | null;
+  error: string;
+  record: PredictionPayload | null;
+  onReset: () => void;
+  onRetry: () => void;
+}
 
-  // Animate gauge percent when result arrives
+export default function ResultPanel({ state, result, error, record, onReset, onRetry }: ResultPanelProps) {
+  const [displayPct, setDisplayPct] = useState<number>(0);
+
   useEffect(() => {
     if (state !== 'done' || !result) {
       setDisplayPct(0);
@@ -62,21 +79,23 @@ export default function ResultPanel({ state, result, error, record, onReset, onR
     const target = result.probability * 100;
     const dur = 1100;
     const startTs = performance.now();
-    const startVal = 0;
-    let raf;
-    const tick = (t) => {
+    let raf: number | undefined;
+    const tick = (t: number) => {
       const p = Math.min(1, (t - startTs) / dur);
       const eased = 1 - Math.pow(1 - p, 3);
-      setDisplayPct(startVal + (target - startVal) * eased);
+      setDisplayPct(target * eased);
       if (p < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => raf && cancelAnimationFrame(raf);
+    return () => { if (raf !== undefined) cancelAnimationFrame(raf); };
   }, [state, result]);
 
-  const risk     = result ? classifyRisk(result.probability) : 'low';
-  const offset   = result ? CIRC * (1 - result.probability) : CIRC;
-  const factors  = useMemo(() => (result && record) ? buildFactors(record) : [], [result, record]);
+  const risk: RiskLevel = result ? classifyRisk(result.probability) : 'low';
+  const offset           = result ? CIRC * (1 - result.probability) : CIRC;
+  const factors          = useMemo<Factor[]>(
+    () => (result && record) ? buildFactors(record) : [],
+    [result, record],
+  );
 
   const verdictText =
     risk === 'low' ? 'Riesgo bajo' :
