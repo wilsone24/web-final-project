@@ -1,5 +1,7 @@
 import { DBSQLClient } from '@databricks/sql';
 
+type SqlSession = Awaited<ReturnType<DBSQLClient['openSession']>>;
+
 const HOST    = process.env.DATABRICKS_SQL_HOST;
 const PATH    = process.env.DATABRICKS_SQL_PATH;
 const TOKEN   = process.env.DATABRICKS_SQL_TOKEN;
@@ -11,12 +13,6 @@ if (!HOST || !PATH || !TOKEN) {
     '[CardioProxy] Faltan variables DATABRICKS_SQL_HOST / DATABRICKS_SQL_PATH / DATABRICKS_SQL_TOKEN — el dashboard fallará.',
   );
 }
-
-const FACT       = `\`${CATALOG}\`.\`${SCHEMA}\`.factcardio`;
-const DIM_AGE    = `\`${CATALOG}\`.\`${SCHEMA}\`.dimagegroup`;
-const DIM_GENDER = `\`${CATALOG}\`.\`${SCHEMA}\`.dimgender`;
-const DIM_CHOL   = `\`${CATALOG}\`.\`${SCHEMA}\`.dimcholesterol`;
-const DIM_GLUC   = `\`${CATALOG}\`.\`${SCHEMA}\`.dimglucose`;
 
 // -- Row shapes returned by the SQL warehouse --------------------------------
 
@@ -52,7 +48,7 @@ export interface DashboardRows {
   lifestyle: LifestyleRow[];
 }
 
-// -- Queries -----------------------------------------------------------------
+// -- Queries (use unqualified table names; catalog/schema set on the session)
 
 const QUERIES: Record<keyof DashboardRows, string> = {
   kpis: `
@@ -63,7 +59,7 @@ const QUERIES: Record<keyof DashboardRows, string> = {
       AVG(CASE WHEN HasCardiovascularDisease THEN 1.0 ELSE 0.0 END)  AS cvd_rate,
       AVG(SystolicBP)                                                AS avg_systolic,
       AVG(DiastolicBP)                                               AS avg_diastolic
-    FROM ${FACT}
+    FROM factcardio
   `,
 
   ageGroup: `
@@ -72,8 +68,8 @@ const QUERIES: Record<keyof DashboardRows, string> = {
       d.AgeGroupDescription                                            AS label,
       COUNT(*)                                                         AS patients,
       AVG(CASE WHEN f.HasCardiovascularDisease THEN 1.0 ELSE 0.0 END)  AS cvd_rate
-    FROM ${FACT} f
-    JOIN ${DIM_AGE} d ON f.IdAgeGroup = d.IdAgeGroup
+    FROM factcardio f
+    JOIN dimagegroup d ON f.IdAgeGroup = d.IdAgeGroup
     GROUP BY d.IdAgeGroup, d.AgeGroupDescription
     ORDER BY d.IdAgeGroup
   `,
@@ -84,8 +80,8 @@ const QUERIES: Record<keyof DashboardRows, string> = {
       d.GenderDescription                                              AS label,
       COUNT(*)                                                         AS patients,
       AVG(CASE WHEN f.HasCardiovascularDisease THEN 1.0 ELSE 0.0 END)  AS cvd_rate
-    FROM ${FACT} f
-    JOIN ${DIM_GENDER} d ON f.IdGender = d.IdGender
+    FROM factcardio f
+    JOIN dimgender d ON f.IdGender = d.IdGender
     GROUP BY d.IdGender, d.GenderDescription
     ORDER BY d.IdGender
   `,
@@ -96,8 +92,8 @@ const QUERIES: Record<keyof DashboardRows, string> = {
       d.CholesterolTypeDescription                                     AS label,
       COUNT(*)                                                         AS patients,
       AVG(CASE WHEN f.HasCardiovascularDisease THEN 1.0 ELSE 0.0 END)  AS cvd_rate
-    FROM ${FACT} f
-    JOIN ${DIM_CHOL} d ON f.IdCholesterolType = d.IdCholesterolType
+    FROM factcardio f
+    JOIN dimcholesterol d ON f.IdCholesterolType = d.IdCholesterolType
     GROUP BY d.IdCholesterolType, d.CholesterolTypeDescription
     ORDER BY d.IdCholesterolType
   `,
@@ -108,8 +104,8 @@ const QUERIES: Record<keyof DashboardRows, string> = {
       d.GlucoseTypeDescription                                         AS label,
       COUNT(*)                                                         AS patients,
       AVG(CASE WHEN f.HasCardiovascularDisease THEN 1.0 ELSE 0.0 END)  AS cvd_rate
-    FROM ${FACT} f
-    JOIN ${DIM_GLUC} d ON f.IdGlucoseType = d.IdGlucoseType
+    FROM factcardio f
+    JOIN dimglucose d ON f.IdGlucoseType = d.IdGlucoseType
     GROUP BY d.IdGlucoseType, d.GlucoseTypeDescription
     ORDER BY d.IdGlucoseType
   `,
@@ -132,57 +128,90 @@ const QUERIES: Record<keyof DashboardRows, string> = {
       END                                                              AS label,
       COUNT(*)                                                         AS patients,
       AVG(CASE WHEN HasCardiovascularDisease THEN 1.0 ELSE 0.0 END)    AS cvd_rate
-    FROM ${FACT}
+    FROM factcardio
     GROUP BY 1, 2
     ORDER BY 1
   `,
 
   lifestyle: `
     SELECT
-      'Fumadores'      AS label,
+      'Fumadores' AS label,
       AVG(CASE WHEN IsSmoker            AND HasCardiovascularDisease THEN 1.0 WHEN IsSmoker            THEN 0.0 END) AS cvd_with,
       AVG(CASE WHEN NOT IsSmoker        AND HasCardiovascularDisease THEN 1.0 WHEN NOT IsSmoker        THEN 0.0 END) AS cvd_without
-    FROM ${FACT}
+    FROM factcardio
     UNION ALL
     SELECT
       'Alcohol',
       AVG(CASE WHEN DrinksAlcohol       AND HasCardiovascularDisease THEN 1.0 WHEN DrinksAlcohol       THEN 0.0 END),
       AVG(CASE WHEN NOT DrinksAlcohol   AND HasCardiovascularDisease THEN 1.0 WHEN NOT DrinksAlcohol   THEN 0.0 END)
-    FROM ${FACT}
+    FROM factcardio
     UNION ALL
     SELECT
       'Activos',
       AVG(CASE WHEN IsPhysicallyActive       AND HasCardiovascularDisease THEN 1.0 WHEN IsPhysicallyActive       THEN 0.0 END),
       AVG(CASE WHEN NOT IsPhysicallyActive   AND HasCardiovascularDisease THEN 1.0 WHEN NOT IsPhysicallyActive   THEN 0.0 END)
-    FROM ${FACT}
+    FROM factcardio
     UNION ALL
     SELECT
       'Hipertensos',
       AVG(CASE WHEN HasHypertension          AND HasCardiovascularDisease THEN 1.0 WHEN HasHypertension          THEN 0.0 END),
       AVG(CASE WHEN NOT HasHypertension      AND HasCardiovascularDisease THEN 1.0 WHEN NOT HasHypertension      THEN 0.0 END)
-    FROM ${FACT}
+    FROM factcardio
   `,
 };
 
-// -- Query execution ---------------------------------------------------------
+// -- Helpers -----------------------------------------------------------------
+
+async function runQuery<T>(session: SqlSession, name: string, sql: string): Promise<T[]> {
+  console.log(`[Dashboard] → ${name}`);
+  let op;
+  try {
+    op = await session.executeStatement(sql);
+  } catch (err) {
+    const detail = err instanceof Error ? `${err.message}\n${err.stack}` : String(err);
+    throw new Error(`Query "${name}" failed during executeStatement: ${detail}`);
+  }
+
+  let rows: T[];
+  try {
+    rows = (await op.fetchAll()) as T[];
+  } catch (err) {
+    const detail = err instanceof Error ? `${err.message}\n${err.stack}` : String(err);
+    throw new Error(`Query "${name}" failed during fetchAll: ${detail}`);
+  } finally {
+    await op.close().catch(() => {});
+  }
+
+  console.log(`[Dashboard] ← ${name} (${rows?.length ?? 0} rows)`);
+  return rows ?? [];
+}
 
 async function runAll(): Promise<DashboardRows> {
+  console.log(`[Dashboard] Opening Databricks SQL connection (${HOST})`);
+
   const client = new DBSQLClient();
   await client.connect({ host: HOST!, path: PATH!, token: TOKEN! });
 
-  const session = await client.openSession();
+  // Setting initialCatalog/initialSchema on the session lets us use bare
+  // table names in every query. Some older driver versions also crash inside
+  // fetchAll when the session has no default namespace, so this also avoids
+  // the "Cannot read properties of undefined (reading 'length')" error.
+  const session = await client.openSession({
+    initialCatalog: CATALOG,
+    initialSchema:  SCHEMA,
+  });
+
+  console.log(`[Dashboard] Session ready (catalog=${CATALOG}, schema=${SCHEMA})`);
 
   const out: Partial<DashboardRows> = {};
   try {
-    for (const [name, sql] of Object.entries(QUERIES) as Array<[keyof DashboardRows, string]>) {
-      const op   = await session.executeStatement(sql, { runAsync: true });
-      const rows = await op.fetchAll();
-      await op.close();
-      // The Databricks driver may return numerics as JS numbers, BigInt or strings.
-      // We cast here; consumers downstream are responsible for normalizing.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (out as any)[name] = rows;
-    }
+    out.kpis        = await runQuery<KpiRow>(session,      'kpis',        QUERIES.kpis);
+    out.ageGroup    = await runQuery<CategoryRow>(session, 'ageGroup',    QUERIES.ageGroup);
+    out.gender      = await runQuery<CategoryRow>(session, 'gender',      QUERIES.gender);
+    out.cholesterol = await runQuery<CategoryRow>(session, 'cholesterol', QUERIES.cholesterol);
+    out.glucose     = await runQuery<CategoryRow>(session, 'glucose',     QUERIES.glucose);
+    out.bmi         = await runQuery<CategoryRow>(session, 'bmi',         QUERIES.bmi);
+    out.lifestyle   = await runQuery<LifestyleRow>(session,'lifestyle',   QUERIES.lifestyle);
   } finally {
     await session.close().catch(() => {});
     await client.close().catch(() => {});
