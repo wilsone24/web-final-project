@@ -94,13 +94,16 @@ interface Meta {
 }
 
 export default function Dashboard() {
-  useReveal([]);
-
   const [state, setState]   = useState<DashboardState>('loading');
   const [data, setData]     = useState<DashboardResponse | null>(null);
   const [error, setError]   = useState<string>('');
   const [meta, setMeta]     = useState<Meta>({ cached: false, generatedAt: null });
   const [refreshing, setRefreshing] = useState<boolean>(false);
+
+  // Re-run the reveal observer every time we transition state (e.g. loading
+  // → ready), because the elements with .reveal are rendered conditionally
+  // and don't exist on initial mount.
+  useReveal([state]);
 
   const load = useCallback(async (refresh: boolean = false) => {
     try {
