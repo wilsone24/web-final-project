@@ -29,7 +29,7 @@ export default function Predict() {
       setResult(out);
       setState('done');
     } catch (e) {
-      console.error('[CardioPredict]', e);
+      console.error('[CardIAc]', e);
       setError(e instanceof Error ? e.message : String(e));
       setState('error');
     }

@@ -1,5 +1,5 @@
 {
-  "name": "cardiopredict-backend",
+  "name": "cardiac-backend",
   "version": "1.0.0",
   "description": "Proxy Node.js (TypeScript) que reenvía peticiones al endpoint de Databricks y al SQL warehouse, ocultando el bearer token y resolviendo CORS.",
   "type": "module",

@@ -62,7 +62,7 @@ export default function Landing() {
                 <span className="gradient-text">inteligencia artificial</span>
               </h1>
               <p className="hero-lead">
-                CardioPredict utiliza un modelo entrenado sobre 70.000 pacientes para estimar la probabilidad
+                CardIAc utiliza un modelo entrenado sobre 70.000 pacientes para estimar la probabilidad
                 de enfermedad cardiovascular a partir de signos vitales, perfil clínico y hábitos.
               </p>
 

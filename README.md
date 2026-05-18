@@ -1,4 +1,4 @@
-# CardioPredict
+# CardIAc
 
 Sitio React (TypeScript) + proxy Node (TypeScript) que consume el endpoint de Databricks Model Serving del clasificador cardiovascular, más un dashboard analítico contra el modelo estrella `gold.factcardio` vía Databricks SQL.
 
