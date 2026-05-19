@@ -1114,3 +1114,247 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   .donut-center { top: 105px; }
   .donut-total { font-size: 1.3rem; }
 }
+
+/* =========================================================
+   Pipeline page — Databricks DAG visualisation
+   ========================================================= */
+
+.orchestrator-card {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 24px; flex-wrap: wrap;
+  padding: 22px 28px;
+  margin: 12px 0 28px;
+  border-radius: var(--r-lg);
+}
+
+.orch-left { display: flex; align-items: center; gap: 16px; }
+
+.orch-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--c-cvd);
+  box-shadow: 0 0 0 6px rgba(238, 150, 149, 0.2);
+  animation: orch-pulse 1.8s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes orch-pulse {
+  0%, 100% { box-shadow: 0 0 0 6px rgba(238, 150, 149, 0.2); }
+  50%      { box-shadow: 0 0 0 12px rgba(238, 150, 149, 0.05); }
+}
+
+.orch-name {
+  font-family: 'Menlo', 'Consolas', monospace;
+  font-weight: 700; font-size: 1.05rem; color: var(--c-text);
+  letter-spacing: -0.01em;
+}
+
+.orch-sub { font-size: 0.82rem; color: var(--c-text-3); margin-top: 2px; }
+.orch-sub code {
+  background: rgba(255, 255, 255, 0.55);
+  padding: 1px 6px; border-radius: 4px;
+  font-size: 0.76rem; color: var(--c-text-2);
+}
+
+.orch-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.orch-chip {
+  padding: 6px 12px; border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(123, 110, 175, 0.14);
+  font-size: 0.78rem; color: var(--c-text-2); font-weight: 500;
+  white-space: nowrap;
+}
+
+/* DAG canvas ------------------------------------------------------------ */
+
+.dag-wrapper {
+  padding: 28px;
+  margin: 0 0 28px;
+  border-radius: var(--r-lg);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dag-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-width: 920px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Edges --------------------------------------------------------------- */
+
+.dag-svg .edge {
+  fill: none;
+  stroke: var(--c-cvd);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-dasharray: 9 7;
+  animation: dag-flow 1.1s linear infinite;
+  filter: drop-shadow(0 0 5px rgba(238, 150, 149, 0.35));
+}
+
+@keyframes dag-flow {
+  to { stroke-dashoffset: -16; }
+}
+
+/* Nodes --------------------------------------------------------------- */
+
+.dag-node {
+  filter: drop-shadow(0 6px 14px rgba(123, 110, 175, 0.10));
+  transition: filter 0.25s var(--ease);
+}
+
+.dag-node:hover { filter: drop-shadow(0 10px 22px rgba(238, 150, 149, 0.22)); }
+
+.dag-node .node-bg {
+  fill: rgba(255, 255, 255, 0.96);
+  stroke: rgba(123, 110, 175, 0.14);
+  stroke-width: 1.4;
+  transition: stroke 0.25s var(--ease);
+}
+
+.dag-node .node-bar { fill: var(--c-secondary); }
+
+.dag-node .node-icon-bg { fill: rgba(255, 255, 255, 0.0); }
+.dag-node .node-icon-svg { color: var(--c-text); opacity: 0.78; }
+
+.dag-node .node-name {
+  font-family: 'Menlo', 'Consolas', monospace;
+  font-size: 13px; font-weight: 600;
+  fill: var(--c-text);
+  letter-spacing: -0.01em;
+}
+
+.dag-node .node-sub {
+  font-size: 11px;
+  fill: var(--c-text-3);
+  font-weight: 500;
+}
+
+.dag-node .node-pill {
+  fill: rgba(123, 110, 175, 0.12);
+}
+
+.dag-node .node-pill-text {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  fill: var(--c-text-2);
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.dag-node:hover .node-bg {
+  stroke: var(--c-cvd);
+  stroke-width: 1.8;
+}
+
+/* Layer-specific accents */
+
+.dag-node.layer-bronze .node-bar         { fill: #E89669; }
+.dag-node.layer-bronze .node-icon-bg     { fill: rgba(244, 181, 141, 0.22); }
+.dag-node.layer-bronze .node-icon-svg    { color: #B26F3D; opacity: 1; }
+.dag-node.layer-bronze .node-pill        { fill: rgba(244, 181, 141, 0.22); }
+.dag-node.layer-bronze .node-pill-text   { fill: #B26F3D; }
+
+.dag-node.layer-silver .node-bar         { fill: #6FA3D8; }
+.dag-node.layer-silver .node-icon-bg     { fill: rgba(159, 193, 232, 0.22); }
+.dag-node.layer-silver .node-icon-svg    { color: #4373A0; opacity: 1; }
+.dag-node.layer-silver .node-pill        { fill: rgba(159, 193, 232, 0.22); }
+.dag-node.layer-silver .node-pill-text   { fill: #4373A0; }
+
+.dag-node.layer-gold .node-bar           { fill: #A096D2; }
+.dag-node.layer-gold .node-icon-bg       { fill: rgba(195, 188, 229, 0.28); }
+.dag-node.layer-gold .node-icon-svg      { color: #6B5FA8; opacity: 1; }
+.dag-node.layer-gold .node-pill          { fill: rgba(195, 188, 229, 0.28); }
+.dag-node.layer-gold .node-pill-text     { fill: #6B5FA8; }
+
+.dag-node.layer-gold-dim .node-bar       { fill: #BFB6E0; }
+.dag-node.layer-gold-dim .node-icon-bg   { fill: rgba(195, 188, 229, 0.18); }
+.dag-node.layer-gold-dim .node-icon-svg  { color: #8479BE; opacity: 1; }
+.dag-node.layer-gold-dim .node-pill      { fill: rgba(195, 188, 229, 0.18); }
+.dag-node.layer-gold-dim .node-pill-text { fill: #8479BE; }
+
+.dag-node.layer-ml .node-bar             { fill: #E47875; }
+.dag-node.layer-ml .node-icon-bg         { fill: rgba(238, 150, 149, 0.22); }
+.dag-node.layer-ml .node-icon-svg        { color: #B0524F; opacity: 1; }
+.dag-node.layer-ml .node-pill            { fill: rgba(238, 150, 149, 0.22); }
+.dag-node.layer-ml .node-pill-text       { fill: #B0524F; }
+
+.dag-node.layer-serve .node-bar          { fill: #6FC598; }
+.dag-node.layer-serve .node-icon-bg      { fill: rgba(157, 217, 187, 0.28); }
+.dag-node.layer-serve .node-icon-svg     { color: #34805C; opacity: 1; }
+.dag-node.layer-serve .node-pill         { fill: rgba(157, 217, 187, 0.28); }
+.dag-node.layer-serve .node-pill-text    { fill: #34805C; }
+
+/* Phase labels (inside SVG) ------------------------------------------- */
+
+.phase-eyebrow {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  fill: var(--c-cvd);
+}
+
+.phase-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  fill: var(--c-text);
+  letter-spacing: -0.02em;
+}
+
+/* Floating bridge note ------------------------------------------------- */
+
+.bridge-note rect {
+  fill: rgba(255, 248, 248, 0.96);
+  stroke: rgba(238, 150, 149, 0.55);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 3;
+  filter: drop-shadow(0 4px 10px rgba(238, 150, 149, 0.18));
+}
+
+.bridge-note text {
+  font-family: 'Menlo', 'Consolas', monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  fill: #B0524F;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.bridge-note.serve-note rect {
+  fill: rgba(245, 252, 248, 0.96);
+  stroke: rgba(106, 187, 144, 0.6);
+  filter: drop-shadow(0 4px 10px rgba(157, 217, 187, 0.22));
+}
+
+.bridge-note.serve-note text { fill: #34805C; font-size: 12.5px; }
+
+/* Legend --------------------------------------------------------------- */
+
+.dag-legend {
+  display: flex; flex-wrap: wrap;
+  gap: 10px 22px;
+  justify-content: center;
+  padding: 12px 0 24px;
+  font-size: 0.86rem;
+  color: var(--c-text-2);
+}
+
+.legend-item { display: inline-flex; align-items: center; gap: 8px; }
+
+.legend-swatch {
+  width: 14px; height: 14px; border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.legend-swatch.sw-bronze   { background: #E89669; }
+.legend-swatch.sw-silver   { background: #6FA3D8; }
+.legend-swatch.sw-gold     { background: #A096D2; }
+.legend-swatch.sw-gold-dim { background: #BFB6E0; }
+.legend-swatch.sw-ml       { background: #E47875; }
+.legend-swatch.sw-serve    { background: #6FC598; }

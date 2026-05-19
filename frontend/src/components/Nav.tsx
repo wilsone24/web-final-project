@@ -3,7 +3,10 @@ import { useEffect, useState } from 'react';
 
 export default function Nav() {
   const location = useLocation();
-  const isInner = location.pathname.startsWith('/predict') || location.pathname.startsWith('/dashboard');
+  const isInner =
+    location.pathname.startsWith('/predict')   ||
+    location.pathname.startsWith('/dashboard') ||
+    location.pathname.startsWith('/pipeline');
   const [scrolled, setScrolled] = useState<boolean>(isInner);
 
   useEffect(() => {
@@ -32,6 +35,11 @@ export default function Nav() {
         <ul className="nav-links">
           <li><a href={isInner ? '/#features' : '#features'}>Plataforma</a></li>
           <li><a href={isInner ? '/#architecture' : '#architecture'}>Arquitectura</a></li>
+          <li>
+            <NavLink to="/pipeline" className={({ isActive }) => isActive ? 'active' : ''}>
+              Pipeline
+            </NavLink>
+          </li>
           <li>
             <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'active' : ''}>
               Dashboard

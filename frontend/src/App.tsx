@@ -6,6 +6,7 @@ import Footer from './components/Footer';
 import Landing from './pages/Landing';
 import Predict from './pages/Predict';
 import Dashboard from './pages/Dashboard';
+import Pipeline from './pages/Pipeline';
 
 export default function App() {
   const location = useLocation();
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/predict" element={<Predict />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/pipeline" element={<Pipeline />} />
         <Route path="*" element={<Landing />} />
       </Routes>
       <Footer />
