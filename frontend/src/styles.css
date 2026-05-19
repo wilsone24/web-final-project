@@ -1360,3 +1360,86 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 .legend-swatch.sw-gold-dim { background: #BFB6E0; }
 .legend-swatch.sw-ml       { background: #E47875; }
 .legend-swatch.sw-serve    { background: #6FC598; }
+
+/* Hint line under the header ------------------------------------------- */
+.dag-hint {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 14px;
+  font-size: 0.86rem; color: var(--c-text-3);
+  background: rgba(255, 255, 255, 0.5);
+  padding: 6px 14px; border-radius: var(--r-pill);
+  border: 1px solid rgba(123, 110, 175, 0.14);
+}
+
+.hint-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--c-cvd);
+  box-shadow: 0 0 0 4px rgba(238, 150, 149, 0.18);
+}
+
+/* --- Reveal-on-scroll: every SVG element fades in once ---------------- */
+
+.dag-svg .dag-node,
+.dag-svg .edge,
+.dag-svg .edge-particle,
+.dag-svg .bridge-note {
+  transition: opacity 0.55s var(--ease);
+}
+
+/* --- Lineage hover (nodes + edges + particles) ----------------------- */
+
+.dag-node.lineage-dim         { /* opacity controlled inline by React */ }
+.dag-svg .edge.lineage-dim    { opacity: 0.10 !important; }
+.dag-svg .edge-particle.lineage-dim { opacity: 0 !important; }
+
+/* --- Run simulation: node visual states ------------------------------ */
+
+.dag-node.run-running .node-bg {
+  stroke: var(--c-cvd);
+  stroke-width: 2.4;
+  animation: run-pulse 1.05s ease-in-out infinite;
+}
+.dag-node.run-running { filter: drop-shadow(0 0 18px rgba(238, 150, 149, 0.42)); }
+
+@keyframes run-pulse {
+  0%, 100% { stroke-opacity: 1;   }
+  50%      { stroke-opacity: 0.35; }
+}
+
+.dag-node.run-success .node-bg {
+  stroke: #6FC598;
+  stroke-width: 1.8;
+}
+
+.status-check circle {
+  fill: #6FC598;
+  filter: drop-shadow(0 2px 4px rgba(111, 197, 152, 0.45));
+}
+
+.status-running-dot circle {
+  fill: var(--c-cvd);
+  animation: run-blink 0.9s ease-in-out infinite;
+}
+
+@keyframes run-blink {
+  0%, 100% { opacity: 1;   r: 5;   }
+  50%      { opacity: 0.5; r: 3.5; }
+}
+
+/* --- Particles travelling along each edge ---------------------------- */
+
+.edge-particle {
+  fill: var(--c-cvd);
+  filter: drop-shadow(0 0 6px rgba(238, 150, 149, 0.85));
+}
+
+.edge-particle.is-live {
+  fill: #FF7A78;
+  filter: drop-shadow(0 0 10px rgba(255, 122, 120, 1));
+}
+
+/* Edges briefly brighten when their upstream just finished */
+.dag-svg .edge.edge-live {
+  stroke-width: 3;
+  filter: drop-shadow(0 0 8px rgba(238, 150, 149, 0.65));
+}
