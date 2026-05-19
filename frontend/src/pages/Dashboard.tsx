@@ -135,7 +135,7 @@ export default function Dashboard() {
             <h2>Cargando datos del modelo estrella</h2>
             <p className="lead">
               El warehouse SQL de Databricks puede tardar un momento en arrancar si estaba detenido.
-              Estamos consultando <code>gold.factcardio</code> y sus dimensiones.
+              Estamos consultando <code>gold.fct_cardio_outcomes</code> y sus dimensiones.
             </p>
           </div>
           <div className="dashboard-loading glass">
@@ -190,7 +190,7 @@ export default function Dashboard() {
         <div className="dashboard-head reveal">
           <div>
             <span className="eyebrow">Dashboard analítico</span>
-            <h2>Modelo estrella · gold.factcardio</h2>
+            <h2>Modelo estrella · gold.fct_cardio_outcomes</h2>
             <p className="lead">
               Métricas agregadas sobre la población clínica completa. Datos cacheados durante 5 minutos
               para no saturar el warehouse SQL.
@@ -335,8 +335,8 @@ export default function Dashboard() {
         </div>
 
         <p className="dashboard-footnote">
-          Fuente: <code>databricks_service_pf.gold.factcardio</code> · vista filtrada a registros vigentes (SCD2)
-          de los últimos 3 años. Las dimensiones se enriquecen con <code>gold.dim*</code>.
+          Fuente: <code>databricks_service_pf.gold.fct_cardio_outcomes</code> · vista filtrada a registros vigentes (SCD2)
+          de los últimos 3 años. Las dimensiones se enriquecen con <code>gold.dim_*</code>.
         </p>
       </div>
     </main>

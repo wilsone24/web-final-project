@@ -59,7 +59,7 @@ const QUERIES: Record<keyof DashboardRows, string> = {
       AVG(CASE WHEN HasCardiovascularDisease THEN 1.0 ELSE 0.0 END)  AS cvd_rate,
       AVG(SystolicBP)                                                AS avg_systolic,
       AVG(DiastolicBP)                                               AS avg_diastolic
-    FROM factcardio
+    FROM fct_cardio_outcomes
   `,
 
   ageGroup: `
@@ -68,8 +68,8 @@ const QUERIES: Record<keyof DashboardRows, string> = {
       d.AgeGroupDescription                                            AS label,
       COUNT(*)                                                         AS patients,
       AVG(CASE WHEN f.HasCardiovascularDisease THEN 1.0 ELSE 0.0 END)  AS cvd_rate
-    FROM factcardio f
-    JOIN dimagegroup d ON f.IdAgeGroup = d.IdAgeGroup
+    FROM fct_cardio_outcomes f
+    JOIN dim_age_group d ON f.IdAgeGroup = d.IdAgeGroup
     GROUP BY d.IdAgeGroup, d.AgeGroupDescription
     ORDER BY d.IdAgeGroup
   `,
@@ -80,8 +80,8 @@ const QUERIES: Record<keyof DashboardRows, string> = {
       d.GenderDescription                                              AS label,
       COUNT(*)                                                         AS patients,
       AVG(CASE WHEN f.HasCardiovascularDisease THEN 1.0 ELSE 0.0 END)  AS cvd_rate
-    FROM factcardio f
-    JOIN dimgender d ON f.IdGender = d.IdGender
+    FROM fct_cardio_outcomes f
+    JOIN dim_gender d ON f.IdGender = d.IdGender
     GROUP BY d.IdGender, d.GenderDescription
     ORDER BY d.IdGender
   `,
@@ -92,8 +92,8 @@ const QUERIES: Record<keyof DashboardRows, string> = {
       d.CholesterolTypeDescription                                     AS label,
       COUNT(*)                                                         AS patients,
       AVG(CASE WHEN f.HasCardiovascularDisease THEN 1.0 ELSE 0.0 END)  AS cvd_rate
-    FROM factcardio f
-    JOIN dimcholesterol d ON f.IdCholesterolType = d.IdCholesterolType
+    FROM fct_cardio_outcomes f
+    JOIN dim_cholesterol d ON f.IdCholesterolType = d.IdCholesterolType
     GROUP BY d.IdCholesterolType, d.CholesterolTypeDescription
     ORDER BY d.IdCholesterolType
   `,
@@ -104,8 +104,8 @@ const QUERIES: Record<keyof DashboardRows, string> = {
       d.GlucoseTypeDescription                                         AS label,
       COUNT(*)                                                         AS patients,
       AVG(CASE WHEN f.HasCardiovascularDisease THEN 1.0 ELSE 0.0 END)  AS cvd_rate
-    FROM factcardio f
-    JOIN dimglucose d ON f.IdGlucoseType = d.IdGlucoseType
+    FROM fct_cardio_outcomes f
+    JOIN dim_glucose d ON f.IdGlucoseType = d.IdGlucoseType
     GROUP BY d.IdGlucoseType, d.GlucoseTypeDescription
     ORDER BY d.IdGlucoseType
   `,
@@ -128,7 +128,7 @@ const QUERIES: Record<keyof DashboardRows, string> = {
       END                                                              AS label,
       COUNT(*)                                                         AS patients,
       AVG(CASE WHEN HasCardiovascularDisease THEN 1.0 ELSE 0.0 END)    AS cvd_rate
-    FROM factcardio
+    FROM fct_cardio_outcomes
     GROUP BY 1, 2
     ORDER BY 1
   `,
@@ -138,25 +138,25 @@ const QUERIES: Record<keyof DashboardRows, string> = {
       'Fumadores' AS label,
       AVG(CASE WHEN IsSmoker            AND HasCardiovascularDisease THEN 1.0 WHEN IsSmoker            THEN 0.0 END) AS cvd_with,
       AVG(CASE WHEN NOT IsSmoker        AND HasCardiovascularDisease THEN 1.0 WHEN NOT IsSmoker        THEN 0.0 END) AS cvd_without
-    FROM factcardio
+    FROM fct_cardio_outcomes
     UNION ALL
     SELECT
       'Alcohol',
       AVG(CASE WHEN DrinksAlcohol       AND HasCardiovascularDisease THEN 1.0 WHEN DrinksAlcohol       THEN 0.0 END),
       AVG(CASE WHEN NOT DrinksAlcohol   AND HasCardiovascularDisease THEN 1.0 WHEN NOT DrinksAlcohol   THEN 0.0 END)
-    FROM factcardio
+    FROM fct_cardio_outcomes
     UNION ALL
     SELECT
       'Activos',
       AVG(CASE WHEN IsPhysicallyActive       AND HasCardiovascularDisease THEN 1.0 WHEN IsPhysicallyActive       THEN 0.0 END),
       AVG(CASE WHEN NOT IsPhysicallyActive   AND HasCardiovascularDisease THEN 1.0 WHEN NOT IsPhysicallyActive   THEN 0.0 END)
-    FROM factcardio
+    FROM fct_cardio_outcomes
     UNION ALL
     SELECT
       'Hipertensos',
       AVG(CASE WHEN HasHypertension          AND HasCardiovascularDisease THEN 1.0 WHEN HasHypertension          THEN 0.0 END),
       AVG(CASE WHEN NOT HasHypertension      AND HasCardiovascularDisease THEN 1.0 WHEN NOT HasHypertension      THEN 0.0 END)
-    FROM factcardio
+    FROM fct_cardio_outcomes
   `,
 };
 

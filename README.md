@@ -1,6 +1,6 @@
 # CardIAc
 
-Sitio React (TypeScript) + proxy Node (TypeScript) que consume el endpoint de Databricks Model Serving del clasificador cardiovascular, más un dashboard analítico contra el modelo estrella `gold.factcardio` vía Databricks SQL.
+Sitio React (TypeScript) + proxy Node (TypeScript) que consume el endpoint de Databricks Model Serving del clasificador cardiovascular, más un dashboard analítico contra el modelo estrella `gold.fct_cardio_outcomes` vía Databricks SQL.
 
 ```bash
 .
@@ -19,7 +19,7 @@ npm run dev   # arranca en http://localhost:8000 con tsx watch
 Endpoints:
 
 - `POST /predict`   — proxy al endpoint de Model Serving
-- `GET  /dashboard` — agregados sobre `gold.factcardio` (cache 5 min, `?refresh=1` para invalidar)
+- `GET  /dashboard` — agregados sobre `gold.fct_cardio_outcomes` (cache 5 min, `?refresh=1` para invalidar)
 - `GET  /health`    — chequeo
 
 Scripts:
