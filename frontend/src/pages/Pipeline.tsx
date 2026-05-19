@@ -63,56 +63,64 @@ function edgePath(a: TaskNode, b: TaskNode): string {
   return `M${x1},${y1} C${x1},${cy1} ${x2},${cy2} ${x2},${y2 - 8}`;
 }
 
-// Layer → icon (24x24 viewBox). Drawn inside each node card.
+// Layer → icon. Returns a <g> with paths in a 24x24 coordinate space, drawn
+// directly into the parent SVG (no nested <svg> — those would need explicit
+// width/height to render).
 function LayerIcon({ layer }: { layer: Layer }) {
-  const common = { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
+  const common = {
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+  };
   switch (layer) {
     case 'bronze':
       return (
-        <svg viewBox="0 0 24 24" {...common}>
+        <g {...common}>
           <ellipse cx="12" cy="5" rx="9" ry="3" />
           <path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5" />
           <path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6" />
-        </svg>
+        </g>
       );
     case 'silver':
       return (
-        <svg viewBox="0 0 24 24" {...common}>
+        <g {...common}>
           <path d="M3 12c3-5 7-7 9-7s6 2 9 7c-3 5-7 7-9 7s-6-2-9-7z" />
           <circle cx="12" cy="12" r="2.5" />
-        </svg>
+        </g>
       );
     case 'gold':
       return (
-        <svg viewBox="0 0 24 24" {...common}>
+        <g {...common}>
           <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-        </svg>
+        </g>
       );
     case 'gold-dim':
       return (
-        <svg viewBox="0 0 24 24" {...common}>
+        <g {...common}>
           <rect x="3" y="3" width="7" height="7" rx="1.5" />
           <rect x="14" y="3" width="7" height="7" rx="1.5" />
           <rect x="3" y="14" width="7" height="7" rx="1.5" />
           <rect x="14" y="14" width="7" height="7" rx="1.5" />
-        </svg>
+        </g>
       );
     case 'ml':
       return (
-        <svg viewBox="0 0 24 24" {...common}>
+        <g {...common}>
           <circle cx="5" cy="6" r="2" />
           <circle cx="5" cy="18" r="2" />
           <circle cx="19" cy="12" r="2" />
           <path d="M7 6l10 5M7 18l10-5" />
-        </svg>
+        </g>
       );
     case 'serve':
       return (
-        <svg viewBox="0 0 24 24" {...common}>
+        <g {...common}>
           <path d="M5 12c0-4 3-7 7-7s7 3 7 7" />
           <path d="M12 12l4 4M12 22l8-8" />
           <circle cx="12" cy="12" r="2" />
-        </svg>
+        </g>
       );
   }
 }

@@ -1173,6 +1173,8 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   border-radius: var(--r-lg);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  /* opaque surface so the animated BgCanvas blobs don't bleed into the DAG */
+  background: rgba(255, 255, 255, 0.94);
 }
 
 .dag-svg {
