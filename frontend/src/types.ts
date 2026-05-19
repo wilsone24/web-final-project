@@ -2,15 +2,12 @@
 
 export interface PredictionPayload {
   age_years: number;
-  age_group_id: number;
   gender: number;
   height_cm: number;
   weight_kg: number;
   bmi: number;
   systolic_bp: number;
   diastolic_bp: number;
-  pulse_pressure: number;
-  hypertension: number;
   cholesterol: number;
   gluc: number;
   is_smoker: number;

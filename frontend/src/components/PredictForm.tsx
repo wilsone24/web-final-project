@@ -86,18 +86,15 @@ export default function PredictForm({ onSubmit, isLoading }: PredictFormProps) {
   }
 
   function buildPayload(): PredictionPayload {
-    const { age, h, w, sys, dia, bmi, pp, ageGid, htn } = computed;
+    const { age, h, w, sys, dia, bmi } = computed;
     return {
       age_years:            +age.toFixed(1),
-      age_group_id:         ageGid!,
       gender:               parseInt(form.gender, 10),
       height_cm:            Math.round(h),
       weight_kg:            +w.toFixed(1),
       bmi:                  +bmi.toFixed(2),
       systolic_bp:          Math.round(sys),
       diastolic_bp:         Math.round(dia),
-      pulse_pressure:       pp,
-      hypertension:         htn ? 1 : 0,
       cholesterol:          parseInt(form.cholesterol, 10),
       gluc:                 parseInt(form.gluc, 10),
       is_smoker:            parseInt(form.smoker, 10),

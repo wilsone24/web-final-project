@@ -24,7 +24,8 @@ function buildFactors(r: PredictionPayload): Factor[] {
   else if (r.bmi >= 18.5) items.push({ k: 'down', t: `BMI en rango saludable (${r.bmi})` });
   else                     items.push({ k: 'up',   t: `Bajo peso (BMI ${r.bmi})` });
 
-  if (r.hypertension) items.push({ k: 'up', t: `Hipertensión (${r.systolic_bp}/${r.diastolic_bp} mmHg)` });
+  const isHypertensive = r.systolic_bp >= 140 || r.diastolic_bp >= 90;
+  if (isHypertensive) items.push({ k: 'up', t: `Hipertensión (${r.systolic_bp}/${r.diastolic_bp} mmHg)` });
   else if (r.systolic_bp < 130 && r.diastolic_bp < 85) items.push({ k: 'down', t: `Presión arterial normal (${r.systolic_bp}/${r.diastolic_bp} mmHg)` });
   else items.push({ k: 'neutral', t: `Presión arterial elevada (${r.systolic_bp}/${r.diastolic_bp} mmHg)` });
 
