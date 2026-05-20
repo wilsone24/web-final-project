@@ -235,7 +235,9 @@ function DagNode({ node, index, status, lineageDim, revealed, staggerActive, onH
       onMouseLeave={() => onHover(null)}
     >
       <rect className="node-bg"  width={NODE_W} height={NODE_H} rx="14" />
-      <rect className="node-bar" width="4"      height={NODE_H} rx="2" />
+      {/* Left accent bar clipped to the card's rounded shape so its top/bottom
+          corners follow the rx=14 curve instead of sticking out as a sharp tab. */}
+      <rect className="node-bar" width="5" height={NODE_H} clipPath="url(#node-clip)" />
       <g transform="translate(18, 22)" className="node-icon">
         <rect width="34" height="34" rx="9" className="node-icon-bg" />
         <g transform="translate(5, 5)" className="node-icon-svg">
@@ -397,6 +399,10 @@ export default function Pipeline() {
               >
                 <path d="M2,2 L10,6 L2,10 Z" fill="var(--c-cvd)" />
               </marker>
+              {/* Shared clip path so every node-bar inherits the card's rounded corners */}
+              <clipPath id="node-clip">
+                <rect width={NODE_W} height={NODE_H} rx="14" />
+              </clipPath>
             </defs>
 
             {/* Phase 1 -------------------------------------------------- */}
