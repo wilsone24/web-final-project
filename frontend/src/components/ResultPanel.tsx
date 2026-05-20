@@ -171,13 +171,17 @@ export default function ResultPanel({
                 <div className="ai-skeleton" aria-busy="true" aria-live="polite">
                   <span className="ai-line w-95" />
                   <span className="ai-line w-100" />
-                  <span className="ai-line w-100" />
                   <span className="ai-line w-70" />
                 </div>
               ) : (
                 <p className="ai-text">{analysis}</p>
               )}
             </div>
+            {analysisState === 'done' && (
+              <p className="ai-disclaimer">
+                Orientación informativa generada con IA · no sustituye un diagnóstico médico.
+              </p>
+            )}
           </div>
         )}
 

@@ -1846,26 +1846,58 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 
 /* Body */
 
-.ai-analysis-body { position: relative; }
+.ai-analysis-body {
+  position: relative;
+  padding-left: 18px;   /* leaves room for the floating curly quote glyph */
+}
+
+/* Decorative opening quote — gives the AI response a quietly editorial feel */
+.ai-analysis-body::before {
+  content: '\201C';   /* “ */
+  position: absolute;
+  top: -10px; left: -2px;
+  font-family: 'Plus Jakarta Sans', Georgia, serif;
+  font-size: 2.6rem;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--c-cvd);
+  opacity: 0.25;
+  pointer-events: none;
+  user-select: none;
+}
 
 .ai-text {
   margin: 0;
-  font-size: 0.96rem;
-  line-height: 1.65;
+  font-size: 0.95rem;
+  line-height: 1.6;
   color: var(--c-text);
-  letter-spacing: -0.005em;
+  letter-spacing: -0.003em;
   animation: ai-fade-in 0.55s var(--ease) both;
-  /* Subtle first-letter accent for a touch of editorial polish */
 }
 
+/* Drop-cap style first letter — small editorial touch */
 .ai-text::first-letter {
-  font-weight: 600;
-  color: var(--c-text);
+  font-weight: 700;
+  font-size: 1.05em;
+  color: var(--c-cvd);
 }
 
 @keyframes ai-fade-in {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Static disclaimer below the AI text — visually separated by a hairline */
+.ai-disclaimer {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(123, 110, 175, 0.14);
+  font-size: 0.74rem;
+  line-height: 1.5;
+  font-style: italic;
+  color: var(--c-text-3);
+  letter-spacing: 0.01em;
+  animation: ai-fade-in 0.55s var(--ease) 0.15s both;
 }
 
 /* Skeleton while waiting for the OpenAI response */
