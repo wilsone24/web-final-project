@@ -69,6 +69,15 @@ const SCHEDULE: Record<string, [number, number]> = {
 };
 const CYCLE_S = 12;
 
+// All distinct transition timestamps in a single cycle. The run-simulation
+// only changes node status at these instants, so we schedule a setTimeout for
+// the next one rather than re-rendering 60 times a second.
+const TRANSITIONS: number[] = (() => {
+  const set = new Set<number>([0, CYCLE_S]);
+  for (const [a, b] of Object.values(SCHEDULE)) { set.add(a); set.add(b); }
+  return Array.from(set).sort((x, y) => x - y);
+})();
+
 function statusAt(id: string, t: number): RunStatus {
   const [start, end] = SCHEDULE[id];
   if (t < start) return 'idle';
@@ -282,18 +291,38 @@ function PhaseLabel({ y, eyebrow, title }: { y: number; eyebrow: string; title: 
 export default function Pipeline() {
   useReveal([]);
 
-  // -- Run simulation: tick a wall-clock cycle of CYCLE_S seconds, mod it ---
+  // -- Run simulation: discrete-event scheduler ------------------------------
+  // Node status is a step function of `t`. Instead of re-rendering 60×/s we
+  // setTimeout to the next transition. ~8 React renders per 12s cycle.
   const [t, setT] = useState(0);
+  const tickerRef = useRef<{ resume: () => void; pause: () => void } | null>(null);
+
   useEffect(() => {
-    let raf = 0;
-    const start = performance.now();
-    const tick = (now: number) => {
-      const sec = ((now - start) / 1000) % CYCLE_S;
-      setT(sec);
-      raf = requestAnimationFrame(tick);
+    const startEpoch = performance.now();
+    let timer = 0;
+    let stopped = false;
+    let paused = false;
+
+    const tick = () => {
+      if (stopped || paused) return;
+      const cycleT = ((performance.now() - startEpoch) / 1000) % CYCLE_S;
+      setT(cycleT);
+      const next = TRANSITIONS.find((tr) => tr > cycleT) ?? CYCLE_S;
+      const waitMs = Math.max(40, (next - cycleT) * 1000 + 8);
+      timer = window.setTimeout(tick, waitMs);
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+
+    tickerRef.current = {
+      pause: () => { paused = true;  window.clearTimeout(timer); },
+      resume: () => { if (paused) { paused = false; tick(); } },
+    };
+    tick();
+
+    return () => {
+      stopped = true;
+      window.clearTimeout(timer);
+      tickerRef.current = null;
+    };
   }, []);
 
   // -- Hover lineage ----------------------------------------------------------
@@ -312,9 +341,18 @@ export default function Pipeline() {
     const el = wrapRef.current;
     if (!el) return;
     if (!('IntersectionObserver' in window)) { setRevealed(true); return; }
+    // Combined observer: reveal once on first intersection, then keep watching
+    // so we can pause the run-simulation ticker when the DAG is offscreen.
     const io = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setRevealed(true); io.disconnect(); } },
-      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' },
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setRevealed(true);
+          tickerRef.current?.resume();
+        } else {
+          tickerRef.current?.pause();
+        }
+      },
+      { threshold: 0.05, rootMargin: '0px 0px -40px 0px' },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -329,21 +367,24 @@ export default function Pipeline() {
     return () => window.clearTimeout(timer);
   }, [revealed]);
 
-  // Particles delay so they're spaced out across edges.
-  const edgeMeta = EDGES.map(([from, to], i) => {
-    const a = NODE_BY_ID[from];
-    const b = NODE_BY_ID[to];
-    const id = EDGE_ID(from, to);
-    return {
-      id,
+  // Edge paths are static — compute them once.
+  const edgePaths = useMemo(
+    () => EDGES.map(([from, to], i) => ({
+      i,
+      id: EDGE_ID(from, to),
       from,
       to,
-      i,
-      d: edgePath(a, b),
-      live: edgeActiveAt(from, to, t),
-      lineageDim: lineage ? !lineage.edges.has(id) : false,
-    };
-  });
+      d: edgePath(NODE_BY_ID[from], NODE_BY_ID[to]),
+    })),
+    [],
+  );
+
+  // Per-render edge derived state (live flag + lineage dim).
+  const edgeMeta = edgePaths.map((e) => ({
+    ...e,
+    live: edgeActiveAt(e.from, e.to, t),
+    lineageDim: lineage ? !lineage.edges.has(e.id) : false,
+  }));
 
   return (
     <main className="predict-page">

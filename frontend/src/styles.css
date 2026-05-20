@@ -1194,7 +1194,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   stroke-linecap: round;
   stroke-dasharray: 9 7;
   animation: dag-flow 1.1s linear infinite;
-  filter: drop-shadow(0 0 5px rgba(238, 150, 149, 0.35));
+  /* No drop-shadow here — 10 edges × 60fps × filter == hot compositor path. */
 }
 
 @keyframes dag-flow {
@@ -1205,10 +1205,9 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 
 .dag-node {
   filter: drop-shadow(0 6px 14px rgba(123, 110, 175, 0.10));
-  transition: filter 0.25s var(--ease);
 }
-
-.dag-node:hover { filter: drop-shadow(0 10px 22px rgba(238, 150, 149, 0.22)); }
+/* No hover filter swap — the lineage dim system already provides feedback,
+   and changing filter on hover forces an extra compositor repaint. */
 
 .dag-node .node-bg {
   fill: rgba(255, 255, 255, 0.96);
@@ -1396,10 +1395,10 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 
 .dag-node.run-running .node-bg {
   stroke: var(--c-cvd);
-  stroke-width: 2.4;
+  stroke-width: 2.6;
   animation: run-pulse 1.05s ease-in-out infinite;
 }
-.dag-node.run-running { filter: drop-shadow(0 0 18px rgba(238, 150, 149, 0.42)); }
+/* No extra filter on running nodes — pulse + thicker stroke is enough. */
 
 @keyframes run-pulse {
   0%, 100% { stroke-opacity: 1;   }
@@ -1428,18 +1427,18 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 
 /* --- Particles travelling along each edge ---------------------------- */
 
+/* Drop-shadow here was costly (10 particles × infinite animateMotion × filter).
+   A brighter solid colour is cheaper and still reads well. */
 .edge-particle {
   fill: var(--c-cvd);
-  filter: drop-shadow(0 0 6px rgba(238, 150, 149, 0.85));
 }
 
 .edge-particle.is-live {
-  fill: #FF7A78;
-  filter: drop-shadow(0 0 10px rgba(255, 122, 120, 1));
+  fill: #FF4845;
 }
 
 /* Edges briefly brighten when their upstream just finished */
 .dag-svg .edge.edge-live {
-  stroke-width: 3;
-  filter: drop-shadow(0 0 8px rgba(238, 150, 149, 0.65));
+  stroke-width: 3.4;
+  stroke: #FF6664;
 }
