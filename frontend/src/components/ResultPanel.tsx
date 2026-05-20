@@ -191,7 +191,15 @@ export default function ResultPanel({
                   <path d="M12 2l1.6 4.6L18 8.2l-4.4 1.6L12 14.4 10.4 9.8 6 8.2l4.4-1.6L12 2zM19 13l.8 2.3 2.2.8-2.2.8L19 19.2l-.8-2.3-2.2-.8 2.2-.8L19 13zM5 14l.6 1.8L7.4 16.4l-1.8.6L5 18.8l-.6-1.8L2.6 16.4l1.8-.6L5 14z" />
                 </svg>
               </span>
-              <span className="ai-eyebrow">Análisis con IA</span>
+              <span className="ai-eyebrow">
+                Análisis con IA
+                {analysisModel && (
+                  <>
+                    <span className="ai-eyebrow-sep" aria-hidden>·</span>
+                    <span className="ai-model-name">{analysisModel}</span>
+                  </>
+                )}
+              </span>
             </div>
             <div className="ai-analysis-body">
               {analysisState === 'loading' ? (
@@ -206,9 +214,7 @@ export default function ResultPanel({
             </div>
             {analysisState === 'done' && (
               <p className="ai-disclaimer">
-                Orientación informativa generada con IA
-                {analysisModel && <> (<span className="ai-disclaimer-model">{analysisModel}</span>)</>}
-                {' '}· no sustituye un diagnóstico médico.
+                Orientación informativa generada con IA · no sustituye un diagnóstico médico.
               </p>
             )}
           </div>
