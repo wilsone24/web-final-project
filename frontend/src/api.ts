@@ -60,3 +60,45 @@ export async function fetchPrediction(record: PredictionPayload): Promise<Predic
 
   return { probability, prediction };
 }
+
+export interface BatchResult {
+  probability: number;
+  prediction: number;
+}
+
+/** Send N patients in a single request. The Databricks endpoint already
+ *  supports arrays under `dataframe_records`, and the proxy just forwards. */
+export async function fetchPredictionBatch(records: PredictionPayload[]): Promise<BatchResult[]> {
+  if (records.length === 0) return [];
+
+  const res = await fetch('/api/predict', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ dataframe_records: records }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`HTTP ${res.status} — ${text || res.statusText}`);
+  }
+
+  const json = (await res.json()) as PredictApiResponse | PredictApiRow[];
+
+  let rows: PredictApiRow[];
+  if (Array.isArray((json as PredictApiResponse).predictions)) {
+    rows = (json as PredictApiResponse).predictions!;
+  } else if (Array.isArray(json)) {
+    rows = json;
+  } else {
+    throw new Error('Respuesta inesperada del modelo: ' + JSON.stringify(json));
+  }
+
+  if (rows.length !== records.length) {
+    throw new Error(`El modelo devolvió ${rows.length} filas pero se enviaron ${records.length}.`);
+  }
+
+  return rows.map((r) => ({
+    probability: parseFloat(String(r.probability ?? r.prob  ?? '')),
+    prediction:  parseInt(String(r.prediction  ?? r.pred ?? ''), 10),
+  }));
+}

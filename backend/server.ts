@@ -16,7 +16,8 @@ if (!TOKEN) {
 }
 
 app.use(cors());
-app.use(express.json({ limit: '1mb' }));
+// 10mb supports batch CSV uploads of ~5000 patients per request.
+app.use(express.json({ limit: '10mb' }));
 
 app.get('/health', (_req: Request, res: Response) => {
   res.json({ ok: true, target: ENDPOINT_URL });

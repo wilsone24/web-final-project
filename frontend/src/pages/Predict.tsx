@@ -1,13 +1,17 @@
 import { useState, useCallback } from 'react';
 import PredictForm from '../components/PredictForm';
 import ResultPanel from '../components/ResultPanel';
+import BatchPredict from '../components/BatchPredict';
 import { fetchPrediction } from '../api';
 import useReveal from '../hooks/useReveal';
 import type { PredictionPayload, PredictionResult, ResultState } from '../types';
 
+type Mode = 'single' | 'batch';
+
 export default function Predict() {
   useReveal([]);
 
+  const [mode,    setMode]    = useState<Mode>('single');
   const [state,   setState]   = useState<ResultState>('empty');
   const [result,  setResult]  = useState<PredictionResult | null>(null);
   const [record,  setRecord]  = useState<PredictionPayload | null>(null);
@@ -49,25 +53,63 @@ export default function Predict() {
   return (
     <main className="predict-page">
       <div className="container">
-        <div className="section-head reveal" style={{ marginBottom: '48px' }}>
+        <div className="section-head reveal" style={{ marginBottom: '24px' }}>
           <span className="eyebrow">Predicción en vivo</span>
           <h2>Evalúa tu riesgo cardiovascular</h2>
           <p className="lead">
-            Completa los campos con la información clínica disponible. Algunos valores se calcularán automáticamente.
+            Predice un paciente desde el formulario o procesa cientos a la vez subiendo un CSV.
           </p>
         </div>
 
-        <div className="predict-layout">
-          <PredictForm onSubmit={runPrediction} isLoading={state === 'loading'} />
-          <ResultPanel
-            state={state}
-            result={result}
-            error={error}
-            record={record}
-            onReset={handleReset}
-            onRetry={handleRetry}
-          />
+        {/* Tabs --------------------------------------------------------- */}
+        <div className="predict-tabs reveal" role="tablist">
+          <button
+            role="tab"
+            type="button"
+            aria-selected={mode === 'single'}
+            className={`predict-tab${mode === 'single' ? ' is-active' : ''}`}
+            onClick={() => setMode('single')}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+            </svg>
+            <span>Individual</span>
+            <small>un paciente</small>
+          </button>
+          <button
+            role="tab"
+            type="button"
+            aria-selected={mode === 'batch'}
+            className={`predict-tab${mode === 'batch' ? ' is-active' : ''}`}
+            onClick={() => setMode('batch')}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <path d="M7 10l5 5 5-5" />
+              <path d="M12 15V3" />
+            </svg>
+            <span>Lote CSV</span>
+            <small>varios pacientes</small>
+          </button>
         </div>
+
+        {/* Tab content -------------------------------------------------- */}
+        {mode === 'single' ? (
+          <div className="predict-layout">
+            <PredictForm onSubmit={runPrediction} isLoading={state === 'loading'} />
+            <ResultPanel
+              state={state}
+              result={result}
+              error={error}
+              record={record}
+              onReset={handleReset}
+              onRetry={handleRetry}
+            />
+          </div>
+        ) : (
+          <BatchPredict />
+        )}
       </div>
     </main>
   );
