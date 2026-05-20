@@ -1786,15 +1786,15 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   box-shadow: 0 4px 18px rgba(123, 110, 175, 0.06);
 }
 
-/* Coral accent rail on the left edge — like a thoughtful quote mark */
+/* Coral accent rail along the FULL left edge — clipped to the card's rounded
+   corners by `overflow: hidden` on `.ai-analysis`. */
 .ai-analysis::before {
   content: '';
   position: absolute;
-  top: 14px; bottom: 14px; left: 0;
-  width: 3px;
-  border-radius: 2px;
+  top: 0; bottom: 0; left: 0;
+  width: 4px;
   background: linear-gradient(180deg, var(--c-cvd) 0%, var(--c-secondary) 100%);
-  opacity: 0.7;
+  opacity: 0.85;
 }
 
 /* Header row: sparkle · eyebrow · model chip */
@@ -1831,17 +1831,46 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   flex: 1;
 }
 
-.ai-model-chip {
+/* Model name displayed inline inside the disclaimer */
+.ai-disclaimer-model {
   font-family: 'Menlo', 'Consolas', monospace;
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  padding: 3px 9px;
-  border-radius: var(--r-pill);
-  background: rgba(195, 188, 229, 0.22);
-  color: #6B5FA8;
-  border: 1px solid rgba(195, 188, 229, 0.35);
-  white-space: nowrap;
+  font-size: 0.92em;
+  color: var(--c-text-2);
+  font-style: normal;
+}
+
+/* Hanging heart mascot — top-right corner, swings gently like a tiny chimp */
+.ai-mascot {
+  position: absolute;
+  top: 6px;
+  right: 12px;
+  width: 38px;
+  height: 52px;
+  pointer-events: none;
+  z-index: 2;
+  transform-origin: 50% 0%;
+  animation: ai-mascot-swing 3.4s ease-in-out infinite;
+  filter: drop-shadow(0 4px 6px rgba(123, 110, 175, 0.18));
+}
+
+.ai-mascot svg { width: 100%; height: 100%; display: block; }
+
+/* Slow swing pivoting from where the hands "grip" the top edge */
+@keyframes ai-mascot-swing {
+  0%, 100% { transform: rotate(-6deg); }
+  50%      { transform: rotate(6deg);  }
+}
+
+/* Occasional eye blink (~every 4s) */
+.ai-mascot .mascot-eye {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: ai-mascot-blink 4.2s ease-in-out infinite;
+}
+
+@keyframes ai-mascot-blink {
+  0%, 92%, 100% { transform: scaleY(1);   }
+  95%           { transform: scaleY(0.1); }
 }
 
 /* Body */

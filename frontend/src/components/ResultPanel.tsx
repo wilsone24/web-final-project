@@ -155,6 +155,36 @@ export default function ResultPanel({
         {/* AI analysis card (silently hidden if backend disabled it) */}
         {analysisState !== 'hidden' && analysisState !== 'idle' && (
           <div className={`ai-analysis ${analysisState === 'loading' ? 'is-loading' : 'is-done'}`}>
+            {/* Hanging heart mascot — swings gently from the top-right of the card
+                like a tiny chimpanzee gripping the edge. Decorative only. */}
+            <span className="ai-mascot" aria-hidden>
+              <svg viewBox="0 0 40 52" xmlns="http://www.w3.org/2000/svg">
+                {/* Arms reaching up to "grip" the top edge */}
+                <path d="M14 17 Q 11 9, 12 3" stroke="#C26764" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                <path d="M26 17 Q 29 9, 28 3" stroke="#C26764" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                {/* Hands gripping (little circles) */}
+                <circle cx="12" cy="3"  r="2.6" fill="#C26764" />
+                <circle cx="28" cy="3"  r="2.6" fill="#C26764" />
+                {/* Heart-shaped body */}
+                <path
+                  d="M20 38 C 12 30, 8 22, 14 18 C 17 16, 19.5 18, 20 19.6 C 20.5 18, 23 16, 26 18 C 32 22, 28 30, 20 38 Z"
+                  fill="#EE9695"
+                  stroke="#C26764"
+                  strokeWidth="1.3"
+                />
+                {/* Eyes: white sclera + dark pupils */}
+                <ellipse cx="16.5" cy="22.6" rx="1.8" ry="2.1" fill="#fff" />
+                <ellipse cx="23.5" cy="22.6" rx="1.8" ry="2.1" fill="#fff" />
+                <circle  cx="16.8" cy="23.1" r="1"     fill="#3D2725" className="mascot-eye" />
+                <circle  cx="23.8" cy="23.1" r="1"     fill="#3D2725" className="mascot-eye" />
+                {/* Smile */}
+                <path d="M17 27.5 Q 20 30, 23 27.5" stroke="#3D2725" strokeWidth="1.1" fill="none" strokeLinecap="round" />
+                {/* Cheek blush */}
+                <circle cx="13.8" cy="26" r="1.4" fill="rgba(238, 150, 149, 0.55)" />
+                <circle cx="26.2" cy="26" r="1.4" fill="rgba(238, 150, 149, 0.55)" />
+              </svg>
+            </span>
+
             <div className="ai-analysis-head">
               <span className="ai-sparkle" aria-hidden>
                 <svg viewBox="0 0 24 24" fill="currentColor">
@@ -162,9 +192,6 @@ export default function ResultPanel({
                 </svg>
               </span>
               <span className="ai-eyebrow">Análisis con IA</span>
-              {analysisModel && (
-                <span className="ai-model-chip" title={`Generado por ${analysisModel}`}>{analysisModel}</span>
-              )}
             </div>
             <div className="ai-analysis-body">
               {analysisState === 'loading' ? (
@@ -179,7 +206,9 @@ export default function ResultPanel({
             </div>
             {analysisState === 'done' && (
               <p className="ai-disclaimer">
-                Orientación informativa generada con IA · no sustituye un diagnóstico médico.
+                Orientación informativa generada con IA
+                {analysisModel && <> (<span className="ai-disclaimer-model">{analysisModel}</span>)</>}
+                {' '}· no sustituye un diagnóstico médico.
               </p>
             )}
           </div>
