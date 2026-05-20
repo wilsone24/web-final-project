@@ -57,6 +57,51 @@ app.get('/dashboard', async (req: Request, res: Response) => {
   }
 });
 
+// Retry transient connection errors (cold starts, brief network blips) with
+// exponential backoff. Node's default fetch connect-timeout is 10s, which is
+// too short for Databricks Model Serving cold starts (30-60s) — so on a
+// connect timeout we wait and retry up to a few times. The total worst-case
+// wait is ~55s which still feels acceptable while the frontend shows its
+// loading spinner.
+
+const TRANSIENT_CODES = new Set([
+  'UND_ERR_CONNECT_TIMEOUT',
+  'ETIMEDOUT',
+  'ECONNRESET',
+  'ECONNREFUSED',
+  'EAI_AGAIN',
+]);
+
+function isTransientError(err: unknown): boolean {
+  const cause = (err as { cause?: { code?: string } })?.cause;
+  return !!cause?.code && TRANSIENT_CODES.has(cause.code);
+}
+
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  { tag, delays = [0, 10_000, 20_000] }: { tag: string; delays?: number[] },
+): Promise<Response> {
+  let lastErr: unknown;
+  for (let i = 0; i < delays.length; i++) {
+    if (delays[i] > 0) {
+      console.log(`[CardioProxy] ${tag}: reintentando en ${delays[i] / 1000}s (probable cold start)…`);
+      await new Promise((r) => setTimeout(r, delays[i]));
+    }
+    try {
+      const res = await fetch(url, init);
+      if (i > 0) console.log(`[CardioProxy] ${tag}: éxito en intento ${i + 1}`);
+      return res;
+    } catch (err) {
+      lastErr = err;
+      const cause = (err as { cause?: { code?: string } })?.cause;
+      if (!isTransientError(err)) throw err;
+      console.warn(`[CardioProxy] ${tag} intento ${i + 1}/${delays.length} falló (${cause?.code})`);
+    }
+  }
+  throw lastErr;
+}
+
 interface PredictBody {
   dataframe_records?: unknown[];
 }
@@ -72,14 +117,18 @@ app.post('/predict', async (req: Request<unknown, unknown, PredictBody>, res: Re
   }
 
   try {
-    const upstream = await fetch(ENDPOINT_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${TOKEN}`,
-        'Content-Type':  'application/json',
+    const upstream = await fetchWithRetry(
+      ENDPOINT_URL!,
+      {
+        method:  'POST',
+        headers: {
+          'Authorization': `Bearer ${TOKEN}`,
+          'Content-Type':  'application/json',
+        },
+        body: JSON.stringify(body),
       },
-      body: JSON.stringify(body),
-    });
+      { tag: 'databricks /predict', delays: [0, 10_000, 20_000] },
+    );
 
     const text        = await upstream.text();
     const contentType = upstream.headers.get('content-type') || 'application/json';
@@ -92,9 +141,13 @@ app.post('/predict', async (req: Request<unknown, unknown, PredictBody>, res: Re
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
     console.error('[CardioProxy] Error al contactar Databricks:', err);
+    const wasTransient = isTransientError(err);
     res.status(502).json({
       error:  'upstream_unreachable',
       detail,
+      hint:   wasTransient
+        ? 'El endpoint de Databricks probablemente está en cold start. Espera 30s y vuelve a intentar.'
+        : undefined,
     });
   }
 });
