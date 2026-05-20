@@ -1833,21 +1833,27 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 
 /* Inline model name displayed next to the eyebrow in the header */
 .ai-eyebrow-sep {
-  display: inline-block;
-  margin: 0 7px;
-  color: var(--c-text-3);
-  letter-spacing: 0;
-  opacity: 0.6;
+  display: none;   /* the chip pill provides enough separation now */
 }
 
 .ai-model-name {
+  display: inline-block;
+  vertical-align: middle;
   font-family: 'Menlo', 'Consolas', monospace;
-  font-size: 0.96em;
+  font-size: 0.86em;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: var(--c-text-3);
+  color: #6B5FA8;
   /* Override the parent eyebrow's uppercase — "gpt-4o" reads better lowercase */
   text-transform: none;
+  /* Chip pill — lavender tint matching the rest of the AI theme */
+  background: rgba(195, 188, 229, 0.32);
+  border: 1px solid rgba(195, 188, 229, 0.5);
+  padding: 2px 9px;
+  border-radius: var(--r-pill);
+  margin-left: 10px;
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
 /* Hanging heart mascot — top-right corner, swings gently like a tiny chimp */
