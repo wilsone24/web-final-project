@@ -15,8 +15,6 @@ services:
       - DATABRICKS_SQL_TOKEN=${DATABRICKS_SQL_TOKEN:-}
       - DATABRICKS_CATALOG=${DATABRICKS_CATALOG:-databricks_service_pf}
       - DATABRICKS_SCHEMA=${DATABRICKS_SCHEMA:-gold}
-    env_file:
-      - ./backend/.env
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8000/health"]
       interval: 30s
