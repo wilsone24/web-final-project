@@ -20,7 +20,7 @@ services:
       retries: 3
     networks:
       - cardiac
-      - dokploy_network
+      - dokploy-network
 
   frontend:
     build:
@@ -33,10 +33,10 @@ services:
         condition: service_healthy
     networks:
       - cardiac
-      - dokploy_network
+      - dokploy-network
 
 networks:
   cardiac:
     driver: bridge
-  dokploy_network:
+  dokploy-network:
     external: true
