@@ -3,16 +3,44 @@ import type { PredictionPayload, PredictionResult, DashboardResponse } from './t
 // Llama al proxy local (que reenvía a Databricks añadiendo el bearer token).
 // En dev Vite hace proxy de /api → http://localhost:8000 (ver vite.config.ts).
 
+// Module-level cache for the dashboard payload. Survives navigation between
+// pages — i.e. visiting /predict and returning to /dashboard hits memory,
+// not the backend. Cleared only when the user explicitly refreshes (calls
+// fetchDashboard({ refresh: true })) or reloads the browser.
+
+let dashboardCache:    DashboardResponse | null = null;
+let dashboardInflight: Promise<DashboardResponse> | null = null;
+
 export async function fetchDashboard(
   { refresh = false }: { refresh?: boolean } = {},
 ): Promise<DashboardResponse> {
-  const url = refresh ? '/api/dashboard?refresh=1' : '/api/dashboard';
-  const res = await fetch(url);
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status} — ${text || res.statusText}`);
+  // Explicit refresh wipes both the memory cache and the backend's cache.
+  if (refresh) {
+    dashboardCache    = null;
+    dashboardInflight = null;
   }
-  return (await res.json()) as DashboardResponse;
+
+  if (dashboardCache)    return dashboardCache;
+  if (dashboardInflight) return dashboardInflight;
+
+  const url = refresh ? '/api/dashboard?refresh=1' : '/api/dashboard';
+
+  dashboardInflight = (async () => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`HTTP ${res.status} — ${text || res.statusText}`);
+      }
+      const data = (await res.json()) as DashboardResponse;
+      dashboardCache = data;
+      return data;
+    } finally {
+      dashboardInflight = null;
+    }
+  })();
+
+  return dashboardInflight;
 }
 
 interface PredictApiRow {

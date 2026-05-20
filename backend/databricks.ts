@@ -221,8 +221,12 @@ async function runAll(): Promise<DashboardRows> {
 }
 
 // -- In-memory cache ---------------------------------------------------------
-
-const CACHE_TTL = 5 * 60 * 1000;
+//
+// The cache is kept INDEFINITELY for the life of the backend process. The
+// dataset is gold-layer aggregate stats over a 3-year SCD2 window — it doesn't
+// change minute-to-minute, so the user explicitly decides when to refresh by
+// hitting the dashboard's reload button (which forwards `?refresh=1`). This
+// keeps the SQL warehouse from spinning up on every page load.
 
 interface CacheEntry {
   data: DashboardRows | null;
@@ -243,7 +247,8 @@ export async function getDashboardData(
 ): Promise<DashboardResult> {
   const now = Date.now();
 
-  if (!force && cache.data && (now - cache.ts) < CACHE_TTL) {
+  // Cached forever — only `force` (i.e. `?refresh=1`) bypasses it.
+  if (!force && cache.data) {
     return { data: cache.data, cached: true, age: now - cache.ts };
   }
 
