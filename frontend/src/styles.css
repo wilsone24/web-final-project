@@ -1770,65 +1770,109 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
    ========================================================= */
 
 .ai-analysis {
-  margin: 18px 0 20px;
-  padding: 16px 18px;
+  margin: 20px 0 22px;
+  padding: 18px 20px 18px 24px;
   border-radius: var(--r-md);
-  background: linear-gradient(135deg, rgba(195, 188, 229, 0.16) 0%, rgba(255, 255, 255, 0.7) 100%);
-  border: 1px solid rgba(123, 110, 175, 0.16);
   position: relative;
   overflow: hidden;
+  /* Layered gradient — coral whisper from the top-right, lavender wash from
+     the bottom-left, soft white base. Gives the card a quietly luxurious feel
+     without competing with the gauge above or the factor list below. */
+  background:
+    radial-gradient(ellipse 60% 80% at 100% 0%, rgba(238, 150, 149, 0.10), transparent 70%),
+    radial-gradient(ellipse 80% 60% at 0% 100%, rgba(195, 188, 229, 0.16), transparent 70%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.65) 100%);
+  border: 1px solid rgba(123, 110, 175, 0.16);
+  box-shadow: 0 4px 18px rgba(123, 110, 175, 0.06);
 }
 
-/* Soft inner highlight to give the card a subtle "glow from the corner" */
+/* Coral accent rail on the left edge — like a thoughtful quote mark */
 .ai-analysis::before {
   content: '';
   position: absolute;
-  top: -60px; left: -60px;
-  width: 180px; height: 180px;
-  background: radial-gradient(circle, rgba(238, 150, 149, 0.14), transparent 70%);
-  pointer-events: none;
+  top: 14px; bottom: 14px; left: 0;
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--c-cvd) 0%, var(--c-secondary) 100%);
+  opacity: 0.7;
 }
 
+/* Header row: sparkle · eyebrow · model chip */
+
 .ai-analysis-head {
-  display: flex; align-items: center; gap: 8px;
-  margin-bottom: 10px;
+  display: flex; align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
   position: relative;
 }
 
 .ai-sparkle {
   display: inline-grid; place-items: center;
-  width: 22px; height: 22px;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(238, 150, 149, 0.22), rgba(238, 150, 149, 0.08));
   color: var(--c-cvd);
-  filter: drop-shadow(0 0 4px rgba(238, 150, 149, 0.45));
+  flex-shrink: 0;
+  animation: ai-sparkle-pulse 2.6s ease-in-out infinite;
 }
-.ai-sparkle svg { width: 18px; height: 18px; }
+.ai-sparkle svg { width: 16px; height: 16px; }
+
+@keyframes ai-sparkle-pulse {
+  0%, 100% { transform: scale(1);    box-shadow: 0 0 0 0   rgba(238, 150, 149, 0.35); }
+  50%      { transform: scale(1.07); box-shadow: 0 0 0 6px rgba(238, 150, 149, 0);   }
+}
 
 .ai-eyebrow {
   font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.10em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--c-text-2);
+  flex: 1;
 }
+
+.ai-model-chip {
+  font-family: 'Menlo', 'Consolas', monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  background: rgba(195, 188, 229, 0.22);
+  color: #6B5FA8;
+  border: 1px solid rgba(195, 188, 229, 0.35);
+  white-space: nowrap;
+}
+
+/* Body */
+
+.ai-analysis-body { position: relative; }
 
 .ai-text {
   margin: 0;
-  font-size: 0.92rem;
-  line-height: 1.55;
-  color: var(--c-text-2);
-  animation: ai-fade-in 0.5s var(--ease);
-  position: relative;
+  font-size: 0.96rem;
+  line-height: 1.65;
+  color: var(--c-text);
+  letter-spacing: -0.005em;
+  animation: ai-fade-in 0.55s var(--ease) both;
+  /* Subtle first-letter accent for a touch of editorial polish */
+}
+
+.ai-text::first-letter {
+  font-weight: 600;
+  color: var(--c-text);
 }
 
 @keyframes ai-fade-in {
-  from { opacity: 0; transform: translateY(4px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Skeleton while waiting for the OpenAI response */
+
 .ai-skeleton {
-  display: flex; flex-direction: column; gap: 8px;
-  position: relative;
+  display: flex; flex-direction: column; gap: 9px;
+  padding: 2px 0;
 }
 
 .ai-line {
@@ -1836,21 +1880,21 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   border-radius: 6px;
   background: linear-gradient(
     90deg,
-    rgba(123, 110, 175, 0.08) 0%,
-    rgba(123, 110, 175, 0.16) 50%,
-    rgba(123, 110, 175, 0.08) 100%
+    rgba(123, 110, 175, 0.07) 0%,
+    rgba(123, 110, 175, 0.18) 50%,
+    rgba(123, 110, 175, 0.07) 100%
   );
-  background-size: 200% 100%;
-  animation: ai-shimmer 1.3s linear infinite;
+  background-size: 220% 100%;
+  animation: ai-shimmer 1.4s linear infinite;
 }
 
 .ai-line.w-70  { width: 70%; }
-.ai-line.w-90  { width: 90%; }
+.ai-line.w-95  { width: 95%; }
 .ai-line.w-100 { width: 100%; }
 
 @keyframes ai-shimmer {
-  from { background-position: 200% 0; }
-  to   { background-position: -200% 0; }
+  from { background-position: 220% 0;  }
+  to   { background-position: -220% 0; }
 }
 
 /* Hint line under the header ------------------------------------------- */

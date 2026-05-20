@@ -34,13 +34,14 @@ interface ResultPanelProps {
   error:         string;
   record:        PredictionPayload | null;
   analysis:      string;
+  analysisModel: string;
   analysisState: AnalysisState;
   onReset:       () => void;
   onRetry:       () => void;
 }
 
 export default function ResultPanel({
-  state, result, error, record, analysis, analysisState, onReset, onRetry,
+  state, result, error, record, analysis, analysisModel, analysisState, onReset, onRetry,
 }: ResultPanelProps) {
   const [displayPct, setDisplayPct] = useState<number>(0);
 
@@ -148,7 +149,7 @@ export default function ResultPanel({
 
         {/* AI analysis card (silently hidden if backend disabled it) */}
         {analysisState !== 'hidden' && analysisState !== 'idle' && (
-          <div className="ai-analysis">
+          <div className={`ai-analysis ${analysisState === 'loading' ? 'is-loading' : 'is-done'}`}>
             <div className="ai-analysis-head">
               <span className="ai-sparkle" aria-hidden>
                 <svg viewBox="0 0 24 24" fill="currentColor">
@@ -156,16 +157,22 @@ export default function ResultPanel({
                 </svg>
               </span>
               <span className="ai-eyebrow">Análisis con IA</span>
+              {analysisModel && (
+                <span className="ai-model-chip" title={`Generado por ${analysisModel}`}>{analysisModel}</span>
+              )}
             </div>
-            {analysisState === 'loading' ? (
-              <div className="ai-skeleton" aria-busy="true" aria-live="polite">
-                <span className="ai-line w-90" />
-                <span className="ai-line w-100" />
-                <span className="ai-line w-70" />
-              </div>
-            ) : (
-              <p className="ai-text">{analysis}</p>
-            )}
+            <div className="ai-analysis-body">
+              {analysisState === 'loading' ? (
+                <div className="ai-skeleton" aria-busy="true" aria-live="polite">
+                  <span className="ai-line w-95" />
+                  <span className="ai-line w-100" />
+                  <span className="ai-line w-100" />
+                  <span className="ai-line w-70" />
+                </div>
+              ) : (
+                <p className="ai-text">{analysis}</p>
+              )}
+            </div>
           </div>
         )}
 

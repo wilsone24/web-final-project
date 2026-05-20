@@ -26,6 +26,7 @@ export default function Predict() {
 
   // -- AI analysis (OpenAI) — runs after the model returns ------------------
   const [analysis,      setAnalysis]      = useState<string>('');
+  const [analysisModel, setAnalysisModel] = useState<string>('');
   const [analysisState, setAnalysisState] = useState<AnalysisState>('idle');
 
   const runPrediction = useCallback(async (payload: PredictionPayload) => {
@@ -33,6 +34,7 @@ export default function Predict() {
     setState('loading');
     setError('');
     setAnalysis('');
+    setAnalysisModel('');
     setAnalysisState('idle');
 
     if (window.innerWidth < 960) {
@@ -60,6 +62,7 @@ export default function Predict() {
           setAnalysisState('hidden');
         } else {
           setAnalysis(outcome.analysis);
+          setAnalysisModel(outcome.model || '');
           setAnalysisState('done');
         }
       });
@@ -75,6 +78,7 @@ export default function Predict() {
     setResult(null);
     setError('');
     setAnalysis('');
+    setAnalysisModel('');
     setAnalysisState('idle');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
@@ -137,6 +141,7 @@ export default function Predict() {
               error={error}
               record={record}
               analysis={analysis}
+              analysisModel={analysisModel}
               analysisState={analysisState}
               onReset={handleReset}
               onRetry={handleRetry}
