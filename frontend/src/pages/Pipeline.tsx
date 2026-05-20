@@ -32,9 +32,9 @@ const NODES: TaskNode[] = [
   { id: 'chol',     name: 'dim_cholesterol',         sub: 'dimensión',             layer: 'gold-dim', x: 720, y: 660 },
   { id: 'gluc',     name: 'dim_glucose',             sub: 'dimensión',             layer: 'gold-dim', x: 950, y: 660 },
   // -- cardio_ml_pipeline ----------------------------------------------------
-  { id: 'train',    name: 'ml_train_cardio_classifier',   sub: 'XGBoost · Optuna',          layer: 'ml',    x: 490, y: 980 },
-  { id: 'promote',  name: 'ml_promote_cardio_classifier', sub: 'champion · challenger',     layer: 'ml',    x: 490, y: 1150 },
-  { id: 'serve',    name: 'ml_serve_cardio_classifier',   sub: 'endpoint REST · serving',   layer: 'serve', x: 490, y: 1320 },
+  { id: 'train',    name: 'ml_train_cardio',   sub: 'XGBoost · Optuna',          layer: 'ml',    x: 490, y: 980 },
+  { id: 'promote',  name: 'ml_promote_cardio', sub: 'champion · challenger',     layer: 'ml',    x: 490, y: 1150 },
+  { id: 'serve',    name: 'ml_serve_cardio',   sub: 'endpoint REST · serving',   layer: 'serve', x: 490, y: 1320 },
 ];
 
 const EDGES: Array<[string, string]> = [
