@@ -9,9 +9,14 @@ import type { PredictionPayload, PredictionResult, ResultState } from '../types'
 type Mode = 'single' | 'batch';
 
 export default function Predict() {
-  useReveal([]);
-
   const [mode,    setMode]    = useState<Mode>('single');
+
+  // Re-run the reveal observer whenever the tab changes: switching tabs
+  // unmounts/remounts PredictForm + ResultPanel (or BatchPredict), and the
+  // freshly mounted `.reveal` elements need to be observed again so they
+  // pick up the `is-visible` class instead of staying at opacity: 0.
+  useReveal([mode]);
+
   const [state,   setState]   = useState<ResultState>('empty');
   const [result,  setResult]  = useState<PredictionResult | null>(null);
   const [record,  setRecord]  = useState<PredictionPayload | null>(null);
