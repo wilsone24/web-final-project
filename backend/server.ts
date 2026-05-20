@@ -6,12 +6,19 @@ import { getDashboardData, clearDashboardCache } from './databricks.js';
 const app  = express();
 const PORT = Number(process.env.PORT) || 8000;
 
-const ENDPOINT_URL = 'https://eastus-c3.azuredatabricks.net/serving-endpoints/cardio-classifier-endpoint/invocations';
+const ENDPOINT_URL = process.env.DATABRICKS_ENDPOINT_URL;
 const TOKEN        = process.env.DATABRICKS_TOKEN;
 
 if (!TOKEN) {
   console.error('\n[CardioProxy] Falta DATABRICKS_TOKEN.');
   console.error('              Copia backend/.env.example a backend/.env y pega tu token.\n');
+  process.exit(1);
+}
+
+if (!ENDPOINT_URL) {
+  console.error('\n[CardioProxy] Falta DATABRICKS_ENDPOINT_URL.');
+  console.error('              Pégalo en backend/.env. Ejemplo:');
+  console.error('              DATABRICKS_ENDPOINT_URL=https://adb-XXXXXXXXXXXXXXX.X.azuredatabricks.net/serving-endpoints/cardio-classifier-endpoint/invocations\n');
   process.exit(1);
 }
 
