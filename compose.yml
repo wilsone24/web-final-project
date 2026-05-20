@@ -5,8 +5,6 @@ services:
       dockerfile: Dockerfile
     container_name: cardiac-backend
     restart: unless-stopped
-    ports:
-      - "8000:8000"
     environment:
       - PORT=8000
       - DATABRICKS_TOKEN=${DATABRICKS_TOKEN}
@@ -22,6 +20,7 @@ services:
       retries: 3
     networks:
       - cardiac
+      - dokploy_network
 
   frontend:
     build:
@@ -29,14 +28,15 @@ services:
       dockerfile: Dockerfile
     container_name: cardiac-frontend
     restart: unless-stopped
-    ports:
-      - "80:80"
     depends_on:
       backend:
         condition: service_healthy
     networks:
       - cardiac
+      - dokploy_network
 
 networks:
   cardiac:
     driver: bridge
+  dokploy_network:
+    external: true
