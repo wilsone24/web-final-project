@@ -2,11 +2,13 @@ import { useState, useCallback } from 'react';
 import PredictForm from '../components/PredictForm';
 import ResultPanel from '../components/ResultPanel';
 import BatchPredict from '../components/BatchPredict';
-import { fetchPrediction } from '../api';
+import { fetchPrediction, fetchAnalysis, ANALYSIS_DISABLED } from '../api';
 import useReveal from '../hooks/useReveal';
+import { buildFactorTexts } from '../lib/factors';
 import type { PredictionPayload, PredictionResult, ResultState } from '../types';
 
 type Mode = 'single' | 'batch';
+type AnalysisState = 'idle' | 'loading' | 'done' | 'hidden';
 
 export default function Predict() {
   const [mode,    setMode]    = useState<Mode>('single');
@@ -22,10 +24,16 @@ export default function Predict() {
   const [record,  setRecord]  = useState<PredictionPayload | null>(null);
   const [error,   setError]   = useState<string>('');
 
+  // -- AI analysis (OpenAI) — runs after the model returns ------------------
+  const [analysis,      setAnalysis]      = useState<string>('');
+  const [analysisState, setAnalysisState] = useState<AnalysisState>('idle');
+
   const runPrediction = useCallback(async (payload: PredictionPayload) => {
     setRecord(payload);
     setState('loading');
     setError('');
+    setAnalysis('');
+    setAnalysisState('idle');
 
     if (window.innerWidth < 960) {
       setTimeout(() => {
@@ -37,6 +45,24 @@ export default function Predict() {
       const out = await fetchPrediction(payload);
       setResult(out);
       setState('done');
+
+      // Kick off the analysis in the background. We don't await it — the panel
+      // shows a skeleton while it loads, and silently hides the card if the
+      // backend reports `disabled` or any error.
+      setAnalysisState('loading');
+      fetchAnalysis({
+        patient:     payload,
+        prediction:  out.prediction,
+        probability: out.probability,
+        factors:     buildFactorTexts(payload),
+      }).then((outcome) => {
+        if (outcome === ANALYSIS_DISABLED) {
+          setAnalysisState('hidden');
+        } else {
+          setAnalysis(outcome.analysis);
+          setAnalysisState('done');
+        }
+      });
     } catch (e) {
       console.error('[CardIAc]', e);
       setError(e instanceof Error ? e.message : String(e));
@@ -48,6 +74,8 @@ export default function Predict() {
     setState('empty');
     setResult(null);
     setError('');
+    setAnalysis('');
+    setAnalysisState('idle');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
@@ -108,6 +136,8 @@ export default function Predict() {
               result={result}
               error={error}
               record={record}
+              analysis={analysis}
+              analysisState={analysisState}
               onReset={handleReset}
               onRetry={handleRetry}
             />

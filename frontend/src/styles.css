@@ -737,6 +737,9 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 .verdict.low  { background: rgba(157, 217, 187, 0.25); color: #2E7A55; }
 .verdict.mid  { background: rgba(244, 181, 141, 0.28); color: #B36830; }
 .verdict.high { background: rgba(238, 150, 149, 0.28); color: #B0524F; }
+/* New binary variants — match the language used in the batch results table. */
+.verdict.pred-neg { background: rgba(157, 217, 187, 0.25); color: #2E7A55; }
+.verdict.pred-pos { background: rgba(238, 150, 149, 0.28); color: #B0524F; }
 
 .verdict .dot {
   width: 10px; height: 10px; border-radius: 50%;
@@ -1753,6 +1756,94 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   .batch-kpi-grid { grid-template-columns: 1fr; }
   .batch-card { padding: 18px; }
   .batch-drop { padding: 36px 18px; }
+}
+
+/* =========================================================
+   AI analysis card (inside ResultPanel)
+   ========================================================= */
+
+.ai-analysis {
+  margin: 18px 0 20px;
+  padding: 16px 18px;
+  border-radius: var(--r-md);
+  background: linear-gradient(135deg, rgba(195, 188, 229, 0.16) 0%, rgba(255, 255, 255, 0.7) 100%);
+  border: 1px solid rgba(123, 110, 175, 0.16);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Soft inner highlight to give the card a subtle "glow from the corner" */
+.ai-analysis::before {
+  content: '';
+  position: absolute;
+  top: -60px; left: -60px;
+  width: 180px; height: 180px;
+  background: radial-gradient(circle, rgba(238, 150, 149, 0.14), transparent 70%);
+  pointer-events: none;
+}
+
+.ai-analysis-head {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.ai-sparkle {
+  display: inline-grid; place-items: center;
+  width: 22px; height: 22px;
+  color: var(--c-cvd);
+  filter: drop-shadow(0 0 4px rgba(238, 150, 149, 0.45));
+}
+.ai-sparkle svg { width: 18px; height: 18px; }
+
+.ai-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--c-text-2);
+}
+
+.ai-text {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--c-text-2);
+  animation: ai-fade-in 0.5s var(--ease);
+  position: relative;
+}
+
+@keyframes ai-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Skeleton while waiting for the OpenAI response */
+.ai-skeleton {
+  display: flex; flex-direction: column; gap: 8px;
+  position: relative;
+}
+
+.ai-line {
+  height: 11px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(123, 110, 175, 0.08) 0%,
+    rgba(123, 110, 175, 0.16) 50%,
+    rgba(123, 110, 175, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  animation: ai-shimmer 1.3s linear infinite;
+}
+
+.ai-line.w-70  { width: 70%; }
+.ai-line.w-90  { width: 90%; }
+.ai-line.w-100 { width: 100%; }
+
+@keyframes ai-shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
 }
 
 /* Hint line under the header ------------------------------------------- */

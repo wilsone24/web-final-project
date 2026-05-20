@@ -1,49 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { PredictionPayload, PredictionResult, ResultState } from '../types';
+import { buildFactors, type Factor, type FactorKind } from '../lib/factors';
 
 const CIRC = 2 * Math.PI * 80;
 
 type RiskLevel = 'low' | 'mid' | 'high';
-type FactorKind = 'up' | 'down' | 'neutral';
-
-interface Factor {
-  k: FactorKind;
-  t: string;
-}
 
 function classifyRisk(p: number): RiskLevel {
   if (p < 0.35) return 'low';
   if (p < 0.65) return 'mid';
   return 'high';
-}
-
-function buildFactors(r: PredictionPayload): Factor[] {
-  const items: Factor[] = [];
-  if (r.bmi >= 30)        items.push({ k: 'up',   t: `Obesidad (BMI ${r.bmi})` });
-  else if (r.bmi >= 25)   items.push({ k: 'up',   t: `Sobrepeso (BMI ${r.bmi})` });
-  else if (r.bmi >= 18.5) items.push({ k: 'down', t: `BMI en rango saludable (${r.bmi})` });
-  else                     items.push({ k: 'up',   t: `Bajo peso (BMI ${r.bmi})` });
-
-  const isHypertensive = r.systolic_bp >= 140 || r.diastolic_bp >= 90;
-  if (isHypertensive) items.push({ k: 'up', t: `Hipertensión (${r.systolic_bp}/${r.diastolic_bp} mmHg)` });
-  else if (r.systolic_bp < 130 && r.diastolic_bp < 85) items.push({ k: 'down', t: `Presión arterial normal (${r.systolic_bp}/${r.diastolic_bp} mmHg)` });
-  else items.push({ k: 'neutral', t: `Presión arterial elevada (${r.systolic_bp}/${r.diastolic_bp} mmHg)` });
-
-  if (r.cholesterol === 3)      items.push({ k: 'up', t: 'Colesterol muy elevado' });
-  else if (r.cholesterol === 2) items.push({ k: 'up', t: 'Colesterol elevado' });
-  else                           items.push({ k: 'down', t: 'Colesterol normal' });
-
-  if (r.gluc === 3)      items.push({ k: 'up', t: 'Glucosa muy elevada' });
-  else if (r.gluc === 2) items.push({ k: 'up', t: 'Glucosa elevada' });
-
-  if (r.is_smoker)            items.push({ k: 'up',   t: 'Fumador activo' });
-  if (r.drinks_alcohol)       items.push({ k: 'up',   t: 'Consumo de alcohol' });
-  if (r.is_physically_active) items.push({ k: 'down', t: 'Actividad física regular' });
-  else                         items.push({ k: 'up',   t: 'Sedentarismo' });
-
-  if (r.age_years >= 60) items.push({ k: 'up', t: `Edad ${r.age_years.toFixed(0)} años (grupo de mayor riesgo)` });
-
-  return items;
 }
 
 function FactorIcon({ kind }: { kind: FactorKind }) {
@@ -60,16 +26,22 @@ function FactorIcon({ kind }: { kind: FactorKind }) {
   return <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4" /></svg>;
 }
 
+type AnalysisState = 'idle' | 'loading' | 'done' | 'hidden';
+
 interface ResultPanelProps {
-  state: ResultState;
-  result: PredictionResult | null;
-  error: string;
-  record: PredictionPayload | null;
-  onReset: () => void;
-  onRetry: () => void;
+  state:         ResultState;
+  result:        PredictionResult | null;
+  error:         string;
+  record:        PredictionPayload | null;
+  analysis:      string;
+  analysisState: AnalysisState;
+  onReset:       () => void;
+  onRetry:       () => void;
 }
 
-export default function ResultPanel({ state, result, error, record, onReset, onRetry }: ResultPanelProps) {
+export default function ResultPanel({
+  state, result, error, record, analysis, analysisState, onReset, onRetry,
+}: ResultPanelProps) {
   const [displayPct, setDisplayPct] = useState<number>(0);
 
   useEffect(() => {
@@ -98,10 +70,11 @@ export default function ResultPanel({ state, result, error, record, onReset, onR
     [result, record],
   );
 
-  const verdictText =
-    risk === 'low' ? 'Riesgo bajo' :
-    risk === 'mid' ? 'Riesgo moderado' :
-                     'Riesgo alto';
+  // Verdict pill now reflects the model's binary prediction (not the probability
+  // bucket). Matches the language used in the batch results table.
+  const isPositive   = result?.prediction === 1;
+  const verdictText  = isPositive ? 'Indicios'     : 'Sin indicios';
+  const verdictClass = isPositive ? 'pred-pos'      : 'pred-neg';
 
   return (
     <aside className="result-panel glass reveal" data-state={state}>
@@ -156,21 +129,44 @@ export default function ResultPanel({ state, result, error, record, onReset, onR
           </div>
         </div>
 
-        <div className={`verdict ${risk}`}>
+        <div className={`verdict ${verdictClass}`}>
           <span className="dot"></span>
           <span>{verdictText}</span>
         </div>
 
         <h3>
-          {result?.prediction === 1
+          {isPositive
             ? 'Indicios de enfermedad cardiovascular'
             : 'Sin indicios significativos'}
         </h3>
         <p className="summary">
-          {result?.prediction === 1
+          {isPositive
             ? 'El modelo clasifica este perfil como positivo. Recomendamos consultar un profesional de la salud para una evaluación.'
             : 'El modelo clasifica este perfil como negativo. Mantén tus hábitos saludables y revisiones periódicas.'}
         </p>
+
+        {/* AI analysis card (silently hidden if backend disabled it) */}
+        {analysisState !== 'hidden' && analysisState !== 'idle' && (
+          <div className="ai-analysis">
+            <div className="ai-analysis-head">
+              <span className="ai-sparkle" aria-hidden>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l1.6 4.6L18 8.2l-4.4 1.6L12 14.4 10.4 9.8 6 8.2l4.4-1.6L12 2zM19 13l.8 2.3 2.2.8-2.2.8L19 19.2l-.8-2.3-2.2-.8 2.2-.8L19 13zM5 14l.6 1.8L7.4 16.4l-1.8.6L5 18.8l-.6-1.8L2.6 16.4l1.8-.6L5 14z" />
+                </svg>
+              </span>
+              <span className="ai-eyebrow">Análisis con IA</span>
+            </div>
+            {analysisState === 'loading' ? (
+              <div className="ai-skeleton" aria-busy="true" aria-live="polite">
+                <span className="ai-line w-90" />
+                <span className="ai-line w-100" />
+                <span className="ai-line w-70" />
+              </div>
+            ) : (
+              <p className="ai-text">{analysis}</p>
+            )}
+          </div>
+        )}
 
         <div className="factor-list">
           {factors.map((f, i) => (

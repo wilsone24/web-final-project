@@ -102,3 +102,40 @@ export async function fetchPredictionBatch(records: PredictionPayload[]): Promis
     prediction:  parseInt(String(r.prediction  ?? r.pred ?? ''), 10),
   }));
 }
+
+// -- /analyze ----------------------------------------------------------------
+
+export interface AnalysisResponse {
+  analysis: string;
+  model?:   string;
+}
+
+/** Returned by fetchAnalysis when the backend reports the feature is disabled
+ *  (no OPENAI_API_KEY) or any other failure — caller uses this to silently hide
+ *  the analysis section instead of bubbling up an error. */
+export const ANALYSIS_DISABLED = Symbol('analysis-disabled');
+export type AnalysisOutcome = AnalysisResponse | typeof ANALYSIS_DISABLED;
+
+export async function fetchAnalysis(args: {
+  patient:     PredictionPayload;
+  prediction:  number;
+  probability: number;
+  factors?:    string[];
+}): Promise<AnalysisOutcome> {
+  try {
+    const res = await fetch('/api/analyze', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(args),
+    });
+
+    if (res.status === 503) return ANALYSIS_DISABLED;     // feature off on backend
+    if (!res.ok)            return ANALYSIS_DISABLED;     // any other failure → hide
+
+    const json = await res.json() as Partial<AnalysisResponse>;
+    if (!json.analysis) return ANALYSIS_DISABLED;
+    return { analysis: json.analysis, model: json.model };
+  } catch {
+    return ANALYSIS_DISABLED;
+  }
+}
