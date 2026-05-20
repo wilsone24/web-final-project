@@ -81,7 +81,7 @@ async function fetchWithRetry(
   url: string,
   init: RequestInit,
   { tag, delays = [0, 10_000, 20_000] }: { tag: string; delays?: number[] },
-): Promise<Response> {
+): Promise<globalThis.Response> {
   let lastErr: unknown;
   for (let i = 0; i < delays.length; i++) {
     if (delays[i] > 0) {
