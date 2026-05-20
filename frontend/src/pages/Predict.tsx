@@ -94,7 +94,9 @@ export default function Predict() {
           <span className="eyebrow">Predicción en vivo</span>
           <h2>Evalúa tu riesgo cardiovascular</h2>
           <p className="lead">
-            Predice un paciente desde el formulario o procesa cientos a la vez subiendo un CSV.
+            Predice un paciente desde el formulario y obtén un análisis personalizado con IA,
+            o procesa cientos a la vez subiendo un CSV. Ambos modos consumen el mismo
+            endpoint XGBoost servido en Databricks.
           </p>
         </div>
 
