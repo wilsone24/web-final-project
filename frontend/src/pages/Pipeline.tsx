@@ -34,7 +34,7 @@ const NODES: TaskNode[] = [
   // -- cardio_ml_pipeline ----------------------------------------------------
   { id: 'train',    name: 'ml_train_cardio',   sub: 'XGBoost · Optuna',          layer: 'ml',    x: 490, y: 980 },
   { id: 'promote',  name: 'ml_promote_cardio', sub: 'champion · challenger',     layer: 'ml',    x: 490, y: 1150 },
-  { id: 'serve',    name: 'ml_serve_cardio',   sub: 'endpoint REST · serving',   layer: 'serve', x: 490, y: 1320 },
+  { id: 'serve',    name: 'ml_serve_cardio',   sub: 'REST endpoint',             layer: 'serve', x: 490, y: 1320 },
 ];
 
 const EDGES: Array<[string, string]> = [
@@ -247,30 +247,35 @@ function DagNode({ node, index, status, lineageDim, revealed, staggerActive, onH
       {/* Left accent bar clipped to the card's rounded shape so its top/bottom
           corners follow the rx=14 curve instead of sticking out as a sharp tab. */}
       <rect className="node-bar" width="5" height={NODE_H} clipPath="url(#node-clip)" />
-      <g transform="translate(18, 22)" className="node-icon">
+
+      {/* Icon, vertically centred (bg 34×34 inside card 78 → y = (78-34)/2 = 22) */}
+      <g transform="translate(13, 22)" className="node-icon">
         <rect width="34" height="34" rx="9" className="node-icon-bg" />
         <g transform="translate(5, 5)" className="node-icon-svg">
           <LayerIcon layer={node.layer} />
         </g>
       </g>
-      <text x="62" y="44" className="node-name">{node.name}</text>
-      <text x="62" y="62" className="node-sub">{node.sub}</text>
-      <g transform={`translate(${NODE_W - 76}, 14)`}>
-        <rect width="62" height="18" rx="9" className="node-pill" />
-        <text x="31" y="13" className="node-pill-text">{LAYER_LABEL[node.layer]}</text>
+
+      {/* Name + sub: text block visually centred against the icon */}
+      <text x="55" y="39" className="node-name">{node.name}</text>
+      <text x="55" y="55" className="node-sub">{node.sub}</text>
+
+      {/* Layer pill — top-right corner, 12px from top and right edges */}
+      <g transform="translate(148, 10)">
+        <rect width="60" height="16" rx="8" className="node-pill" />
+        {/* y is the baseline; with 9px caps in a 16px pill, y=11 centres the caps */}
+        <text x="30" y="11" className="node-pill-text">{LAYER_LABEL[node.layer]}</text>
       </g>
 
-      {/* Success check badge (bottom-right corner) */}
+      {/* Status badge — bottom-right, same right edge as the pill (x=208) */}
       {status === 'success' && (
-        <g className="status-check" transform={`translate(${NODE_W - 26}, ${NODE_H - 26})`}>
+        <g className="status-check" transform="translate(190, 50)">
           <circle cx="9" cy="9" r="9" />
           <path d="M5 9.5 L8 12.5 L13.5 6.5" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </g>
       )}
-
-      {/* Running spinner dot */}
       {status === 'running' && (
-        <g className="status-running-dot" transform={`translate(${NODE_W - 18}, ${NODE_H - 18})`}>
+        <g className="status-running-dot" transform="translate(199, 59)">
           <circle cx="0" cy="0" r="5" />
         </g>
       )}

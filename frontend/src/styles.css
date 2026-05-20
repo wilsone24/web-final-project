@@ -1223,13 +1223,13 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 
 .dag-node .node-name {
   font-family: 'Menlo', 'Consolas', monospace;
-  font-size: 13px; font-weight: 600;
+  font-size: 12px; font-weight: 600;
   fill: var(--c-text);
   letter-spacing: -0.01em;
 }
 
 .dag-node .node-sub {
-  font-size: 11px;
+  font-size: 10.5px;
   fill: var(--c-text-3);
   font-weight: 500;
 }
@@ -1238,13 +1238,14 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   fill: rgba(123, 110, 175, 0.12);
 }
 
+/* dominant-baseline:middle renders inconsistently across browsers (some align
+   x-height middle, others align em-box middle). Use a manual baseline y. */
 .dag-node .node-pill-text {
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.08em;
   fill: var(--c-text-2);
   text-anchor: middle;
-  dominant-baseline: middle;
 }
 
 .dag-node:hover .node-bg {
