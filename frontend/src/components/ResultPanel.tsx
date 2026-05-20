@@ -141,11 +141,16 @@ export default function ResultPanel({
             ? 'Indicios de enfermedad cardiovascular'
             : 'Sin indicios significativos'}
         </h3>
-        <p className="summary">
-          {isPositive
-            ? 'El modelo clasifica este perfil como positivo. Recomendamos consultar un profesional de la salud para una evaluación.'
-            : 'El modelo clasifica este perfil como negativo. Mantén tus hábitos saludables y revisiones periódicas.'}
-        </p>
+        {/* Static fallback summary — only shown when the GPT analysis is
+            unavailable (backend missing OPENAI_API_KEY or upstream error).
+            When the AI is active, its personalised analysis takes this role. */}
+        {(analysisState === 'hidden' || analysisState === 'idle') && (
+          <p className="summary">
+            {isPositive
+              ? 'El modelo clasifica este perfil como positivo. Recomendamos consultar un profesional de la salud para una evaluación.'
+              : 'El modelo clasifica este perfil como negativo. Mantén tus hábitos saludables y revisiones periódicas.'}
+          </p>
+        )}
 
         {/* AI analysis card (silently hidden if backend disabled it) */}
         {analysisState !== 'hidden' && analysisState !== 'idle' && (
