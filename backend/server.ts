@@ -1,7 +1,7 @@
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import 'dotenv/config';
-import { getDashboardData, clearDashboardCache } from './databricks.ts';
+import { getDashboardData, clearDashboardCache } from './databricks.js';
 
 const app  = express();
 const PORT = Number(process.env.PORT) || 8000;
