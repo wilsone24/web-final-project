@@ -1,22 +1,41 @@
 import { useState, useCallback } from 'react';
 import PredictForm from '../components/PredictForm';
 import ResultPanel from '../components/ResultPanel';
-import { fetchPrediction } from '../api';
+import BatchPredict from '../components/BatchPredict';
+import { fetchPrediction, fetchAnalysis, ANALYSIS_DISABLED } from '../api';
 import useReveal from '../hooks/useReveal';
+import { buildFactorTexts } from '../lib/factors';
 import type { PredictionPayload, PredictionResult, ResultState } from '../types';
 
+type Mode = 'single' | 'batch';
+type AnalysisState = 'idle' | 'loading' | 'done' | 'hidden';
+
 export default function Predict() {
-  useReveal([]);
+  const [mode,    setMode]    = useState<Mode>('single');
+
+  // Re-run the reveal observer whenever the tab changes: switching tabs
+  // unmounts/remounts PredictForm + ResultPanel (or BatchPredict), and the
+  // freshly mounted `.reveal` elements need to be observed again so they
+  // pick up the `is-visible` class instead of staying at opacity: 0.
+  useReveal([mode]);
 
   const [state,   setState]   = useState<ResultState>('empty');
   const [result,  setResult]  = useState<PredictionResult | null>(null);
   const [record,  setRecord]  = useState<PredictionPayload | null>(null);
   const [error,   setError]   = useState<string>('');
 
+  // -- AI analysis (OpenAI) — runs after the model returns ------------------
+  const [analysis,      setAnalysis]      = useState<string>('');
+  const [analysisModel, setAnalysisModel] = useState<string>('');
+  const [analysisState, setAnalysisState] = useState<AnalysisState>('idle');
+
   const runPrediction = useCallback(async (payload: PredictionPayload) => {
     setRecord(payload);
     setState('loading');
     setError('');
+    setAnalysis('');
+    setAnalysisModel('');
+    setAnalysisState('idle');
 
     if (window.innerWidth < 960) {
       setTimeout(() => {
@@ -28,6 +47,25 @@ export default function Predict() {
       const out = await fetchPrediction(payload);
       setResult(out);
       setState('done');
+
+      // Kick off the analysis in the background. We don't await it — the panel
+      // shows a skeleton while it loads, and silently hides the card if the
+      // backend reports `disabled` or any error.
+      setAnalysisState('loading');
+      fetchAnalysis({
+        patient:     payload,
+        prediction:  out.prediction,
+        probability: out.probability,
+        factors:     buildFactorTexts(payload),
+      }).then((outcome) => {
+        if (outcome === ANALYSIS_DISABLED) {
+          setAnalysisState('hidden');
+        } else {
+          setAnalysis(outcome.analysis);
+          setAnalysisModel(outcome.model || '');
+          setAnalysisState('done');
+        }
+      });
     } catch (e) {
       console.error('[CardIAc]', e);
       setError(e instanceof Error ? e.message : String(e));
@@ -39,6 +77,9 @@ export default function Predict() {
     setState('empty');
     setResult(null);
     setError('');
+    setAnalysis('');
+    setAnalysisModel('');
+    setAnalysisState('idle');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
@@ -49,25 +90,68 @@ export default function Predict() {
   return (
     <main className="predict-page">
       <div className="container">
-        <div className="section-head reveal" style={{ marginBottom: '48px' }}>
+        <div className="section-head reveal" style={{ marginBottom: '24px' }}>
           <span className="eyebrow">Predicción en vivo</span>
           <h2>Evalúa tu riesgo cardiovascular</h2>
           <p className="lead">
-            Completa los campos con la información clínica disponible. Algunos valores se calcularán automáticamente.
+            Predice un paciente desde el formulario y obtén un análisis personalizado con IA,
+            o procesa cientos a la vez subiendo un CSV. Ambos modos consumen el mismo
+            endpoint XGBoost servido en Databricks.
           </p>
         </div>
 
-        <div className="predict-layout">
-          <PredictForm onSubmit={runPrediction} isLoading={state === 'loading'} />
-          <ResultPanel
-            state={state}
-            result={result}
-            error={error}
-            record={record}
-            onReset={handleReset}
-            onRetry={handleRetry}
-          />
+        {/* Tabs --------------------------------------------------------- */}
+        <div className="predict-tabs reveal" role="tablist">
+          <button
+            role="tab"
+            type="button"
+            aria-selected={mode === 'single'}
+            className={`predict-tab${mode === 'single' ? ' is-active' : ''}`}
+            onClick={() => setMode('single')}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+            </svg>
+            <span>Individual</span>
+            <small>un paciente</small>
+          </button>
+          <button
+            role="tab"
+            type="button"
+            aria-selected={mode === 'batch'}
+            className={`predict-tab${mode === 'batch' ? ' is-active' : ''}`}
+            onClick={() => setMode('batch')}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <path d="M7 10l5 5 5-5" />
+              <path d="M12 15V3" />
+            </svg>
+            <span>Lote CSV</span>
+            <small>varios pacientes</small>
+          </button>
         </div>
+
+        {/* Tab content -------------------------------------------------- */}
+        {mode === 'single' ? (
+          <div className="predict-layout">
+            <PredictForm onSubmit={runPrediction} isLoading={state === 'loading'} />
+            <ResultPanel
+              state={state}
+              result={result}
+              error={error}
+              record={record}
+              analysis={analysis}
+              analysisModel={analysisModel}
+              analysisState={analysisState}
+              onReset={handleReset}
+              onRetry={handleRetry}
+            />
+          </div>
+        ) : (
+          <BatchPredict />
+        )}
       </div>
     </main>
   );

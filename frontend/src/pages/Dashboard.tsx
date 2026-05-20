@@ -192,8 +192,9 @@ export default function Dashboard() {
             <span className="eyebrow">Dashboard analítico</span>
             <h2>Modelo estrella · gold.fct_cardio_outcomes</h2>
             <p className="lead">
-              Métricas agregadas sobre la población clínica completa. Datos cacheados durante 5 minutos
-              para no saturar el warehouse SQL.
+              Métricas agregadas sobre la población clínica completa, calculadas sobre la vista SCD-2
+              vigente de los últimos 3 años. Los datos quedan en cache hasta que pulses
+              <strong> Actualizar</strong> — no se refrescan automáticamente para no saturar el warehouse SQL.
             </p>
           </div>
           <div className="dashboard-meta">

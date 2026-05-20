@@ -62,8 +62,9 @@ export default function Landing() {
                 <span className="gradient-text">inteligencia artificial</span>
               </h1>
               <p className="hero-lead">
-                CardIAc utiliza un modelo entrenado sobre 70.000 pacientes para estimar la probabilidad
-                de enfermedad cardiovascular a partir de signos vitales, perfil clínico y hábitos.
+                CardIAc combina un pipeline medallion en Databricks con un modelo XGBoost servido
+                como endpoint REST. Estima la probabilidad de enfermedad cardiovascular a partir
+                de signos vitales, perfil clínico y hábitos — paciente por paciente o en lote.
               </p>
 
               <div className="hero-actions">
@@ -86,8 +87,8 @@ export default function Landing() {
                   <div className="lbl">Pacientes</div>
                 </div>
                 <div className="stat">
-                  <div className="num">15</div>
-                  <div className="lbl">Features clínicas</div>
+                  <div className="num">12</div>
+                  <div className="lbl">Features ML</div>
                 </div>
                 <div className="stat">
                   <div className="num">~73%</div>
@@ -120,8 +121,9 @@ export default function Landing() {
             <span className="eyebrow">Plataforma</span>
             <h2>Una pipeline completa de extremo a extremo</h2>
             <p className="lead">
-              Desde la ingesta de datos hasta el endpoint REST: una arquitectura medallion moderna que limpia,
-              enriquece y modela información clínica para producir predicciones confiables.
+              Desde el CSV crudo en bronze hasta el endpoint REST: una arquitectura medallion
+              orquestada en Databricks Jobs que limpia, enriquece, entrena y sirve el modelo
+              todos los días sin intervención manual.
             </p>
           </div>
 
@@ -135,7 +137,7 @@ export default function Landing() {
                 </svg>
               </div>
               <h3>Ingesta cruda · Bronze</h3>
-              <p>Datos clínicos de Kaggle Cardiovascular Disease cargados directamente desde CSV con esquema tipado y metadatos completos en Unity Catalog.</p>
+              <p>70.000 filas del Kaggle Cardiovascular Disease Dataset cargadas a Delta con esquema explícito, validación de conteo y comentarios por columna en Unity Catalog.</p>
             </div>
 
             <div className="feature-card glass reveal">
@@ -146,7 +148,7 @@ export default function Landing() {
                 </svg>
               </div>
               <h3>Limpieza · Silver</h3>
-              <p>Imputación de nulos por género, eliminación de outliers fisiológicos, BMI derivado, presión de pulso e hipertensión según criterios ACC/AHA 2017.</p>
+              <p>Imputación por género, filtros fisiológicos, BMI / presión de pulso / hipertensión derivados (criterios ACC/AHA 2017) y MERGE SCD-2 sobre patient id para mantener la historia.</p>
             </div>
 
             <div className="feature-card glass reveal">
@@ -156,18 +158,19 @@ export default function Landing() {
                 </svg>
               </div>
               <h3>Modelo estrella · Gold</h3>
-              <p>Tabla fact + dimensiones (edad, género, colesterol, glucosa) lista para analítica y feature engineering. Solo registros vigentes vía SCD-2.</p>
+              <p><code>fct_cardio_outcomes</code> + 4 dimensiones (edad, género, colesterol, glucosa) para analítica, y <code>cardio_features</code> con 12 columnas listas para entrenamiento.</p>
             </div>
 
             <div className="feature-card glass reveal">
               <div className="feature-icon i-eda">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 3v18h18" />
-                  <path d="M7 14l4-4 4 4 5-5" />
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                  <path d="M7 10l5 5 5-5" />
+                  <path d="M12 15V3" />
                 </svg>
               </div>
-              <h3>EDA exhaustivo</h3>
-              <p>Análisis univariado, bivariado, correlaciones de Spearman y ranking de importancia por información mutua. Todo reproducible en Databricks.</p>
+              <h3>Predicción individual y por lote</h3>
+              <p>Predice un paciente desde el formulario o sube un CSV con miles de filas: mapeo flexible de columnas, validación por fila, KPIs y descarga del resultado.</p>
             </div>
 
             <div className="feature-card glass reveal">
@@ -182,13 +185,12 @@ export default function Landing() {
 
             <div className="feature-card glass reveal">
               <div className="feature-icon i-serve">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="3" width="20" height="14" rx="2" />
-                  <path d="M8 21h8M12 17v4" />
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l1.6 4.6L18 8.2l-4.4 1.6L12 14.4 10.4 9.8 6 8.2l4.4-1.6L12 2zM19 13l.8 2.3 2.2.8-2.2.8L19 19.2l-.8-2.3-2.2-.8 2.2-.8L19 13z" />
                 </svg>
               </div>
-              <h3>Servido en tiempo real</h3>
-              <p>Modelo registrado en MLflow con gobernanza champion-challenger y expuesto como endpoint REST de Databricks Model Serving.</p>
+              <h3>Análisis personalizado con IA</h3>
+              <p>Cada predicción individual incluye un análisis breve generado con GPT-4o que destaca factores positivos y a mejorar, con una sugerencia accionable basada en tus datos.</p>
             </div>
           </div>
         </div>
@@ -201,17 +203,18 @@ export default function Landing() {
             <span className="eyebrow">Cómo funciona</span>
             <h2>De los datos a la predicción en cuatro pasos</h2>
             <p className="lead">
-              Una pipeline pensada para la trazabilidad y la observabilidad. Cada etapa registra metadatos,
-              validaciones y linaje en Unity Catalog.
+              Una pipeline pensada para trazabilidad y observabilidad: cada etapa registra metadatos,
+              validaciones y linaje en Unity Catalog. El job <code>cardio_end_to_end</code> orquesta
+              todo y corre automáticamente cada día.
             </p>
           </div>
 
           <div className="pipeline">
             {([
-              ['1', 'Captura', 'Datos clínicos llegan a la capa bronze tal cual, con esquema tipado.'],
-              ['2', 'Refinamiento', 'Silver imputa nulos, elimina outliers y deriva BMI, presión de pulso, hipertensión.'],
-              ['3', 'Entrenamiento', 'XGBoost vs Random Forest con Optuna, validación cruzada y umbral óptimo.'],
-              ['4', 'Predicción', 'El campeón se expone como endpoint REST que tú consumes desde aquí.'],
+              ['1', 'Captura',      'CSV crudo de Kaggle ingresa a bronze con esquema tipado y conteo validado.'],
+              ['2', 'Refinamiento', 'Silver imputa por género, filtra outliers fisiológicos, deriva BMI y aplica SCD-2.'],
+              ['3', 'Entrenamiento','XGBoost optimizado con Optuna; promoción champion-challenger en MLflow.'],
+              ['4', 'Predicción',   'El modelo en producción se expone como endpoint REST y lo consumes desde aquí.'],
             ] as const).map(([n, t, d]) => (
               <div className="pipe-step reveal" key={n}>
                 <div className="pipe-num">{n}</div>
@@ -261,7 +264,7 @@ export default function Landing() {
             <div className="layer-card glass reveal">
               <span className="layer-label gold">● Gold</span>
               <h3>Modelo estrella + features ML</h3>
-              <p className="desc">Tabla fact con últimos 3 años, dimensiones filtradas por valores presentes y tabla específica de features lista para entrenamiento XGBoost.</p>
+              <p className="desc"><code>fct_cardio_outcomes</code> con los últimos 3 años, 4 dimensiones filtradas a los valores presentes, y <code>cardio_features</code> con 12 columnas snake_case listas para XGBoost.</p>
               <div className="layer-meta">
                 <span className="tag">Star schema</span>
                 <span className="tag">Feature table</span>

@@ -1,49 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { PredictionPayload, PredictionResult, ResultState } from '../types';
+import { buildFactors, type Factor, type FactorKind } from '../lib/factors';
 
 const CIRC = 2 * Math.PI * 80;
 
 type RiskLevel = 'low' | 'mid' | 'high';
-type FactorKind = 'up' | 'down' | 'neutral';
-
-interface Factor {
-  k: FactorKind;
-  t: string;
-}
 
 function classifyRisk(p: number): RiskLevel {
   if (p < 0.35) return 'low';
   if (p < 0.65) return 'mid';
   return 'high';
-}
-
-function buildFactors(r: PredictionPayload): Factor[] {
-  const items: Factor[] = [];
-  if (r.bmi >= 30)        items.push({ k: 'up',   t: `Obesidad (BMI ${r.bmi})` });
-  else if (r.bmi >= 25)   items.push({ k: 'up',   t: `Sobrepeso (BMI ${r.bmi})` });
-  else if (r.bmi >= 18.5) items.push({ k: 'down', t: `BMI en rango saludable (${r.bmi})` });
-  else                     items.push({ k: 'up',   t: `Bajo peso (BMI ${r.bmi})` });
-
-  const isHypertensive = r.systolic_bp >= 140 || r.diastolic_bp >= 90;
-  if (isHypertensive) items.push({ k: 'up', t: `Hipertensión (${r.systolic_bp}/${r.diastolic_bp} mmHg)` });
-  else if (r.systolic_bp < 130 && r.diastolic_bp < 85) items.push({ k: 'down', t: `Presión arterial normal (${r.systolic_bp}/${r.diastolic_bp} mmHg)` });
-  else items.push({ k: 'neutral', t: `Presión arterial elevada (${r.systolic_bp}/${r.diastolic_bp} mmHg)` });
-
-  if (r.cholesterol === 3)      items.push({ k: 'up', t: 'Colesterol muy elevado' });
-  else if (r.cholesterol === 2) items.push({ k: 'up', t: 'Colesterol elevado' });
-  else                           items.push({ k: 'down', t: 'Colesterol normal' });
-
-  if (r.gluc === 3)      items.push({ k: 'up', t: 'Glucosa muy elevada' });
-  else if (r.gluc === 2) items.push({ k: 'up', t: 'Glucosa elevada' });
-
-  if (r.is_smoker)            items.push({ k: 'up',   t: 'Fumador activo' });
-  if (r.drinks_alcohol)       items.push({ k: 'up',   t: 'Consumo de alcohol' });
-  if (r.is_physically_active) items.push({ k: 'down', t: 'Actividad física regular' });
-  else                         items.push({ k: 'up',   t: 'Sedentarismo' });
-
-  if (r.age_years >= 60) items.push({ k: 'up', t: `Edad ${r.age_years.toFixed(0)} años (grupo de mayor riesgo)` });
-
-  return items;
 }
 
 function FactorIcon({ kind }: { kind: FactorKind }) {
@@ -60,16 +26,23 @@ function FactorIcon({ kind }: { kind: FactorKind }) {
   return <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4" /></svg>;
 }
 
+type AnalysisState = 'idle' | 'loading' | 'done' | 'hidden';
+
 interface ResultPanelProps {
-  state: ResultState;
-  result: PredictionResult | null;
-  error: string;
-  record: PredictionPayload | null;
-  onReset: () => void;
-  onRetry: () => void;
+  state:         ResultState;
+  result:        PredictionResult | null;
+  error:         string;
+  record:        PredictionPayload | null;
+  analysis:      string;
+  analysisModel: string;
+  analysisState: AnalysisState;
+  onReset:       () => void;
+  onRetry:       () => void;
 }
 
-export default function ResultPanel({ state, result, error, record, onReset, onRetry }: ResultPanelProps) {
+export default function ResultPanel({
+  state, result, error, record, analysis, analysisModel, analysisState, onReset, onRetry,
+}: ResultPanelProps) {
   const [displayPct, setDisplayPct] = useState<number>(0);
 
   useEffect(() => {
@@ -98,10 +71,11 @@ export default function ResultPanel({ state, result, error, record, onReset, onR
     [result, record],
   );
 
-  const verdictText =
-    risk === 'low' ? 'Riesgo bajo' :
-    risk === 'mid' ? 'Riesgo moderado' :
-                     'Riesgo alto';
+  // Verdict pill now reflects the model's binary prediction (not the probability
+  // bucket). Matches the language used in the batch results table.
+  const isPositive   = result?.prediction === 1;
+  const verdictText  = isPositive ? 'Indicios'     : 'Sin indicios';
+  const verdictClass = isPositive ? 'pred-pos'      : 'pred-neg';
 
   return (
     <aside className="result-panel glass reveal" data-state={state}>
@@ -136,6 +110,7 @@ export default function ResultPanel({ state, result, error, record, onReset, onR
       <div className="result-loading">
         <div className="spinner"></div>
         <p>Analizando con el modelo XGBoost…</p>
+        <p className="loading-hint">Si es la primera predicción en un rato, el endpoint puede tardar ~30s en despertar.</p>
       </div>
 
       <div className="result-done">
@@ -156,21 +131,94 @@ export default function ResultPanel({ state, result, error, record, onReset, onR
           </div>
         </div>
 
-        <div className={`verdict ${risk}`}>
+        <div className={`verdict ${verdictClass}`}>
           <span className="dot"></span>
           <span>{verdictText}</span>
         </div>
 
         <h3>
-          {result?.prediction === 1
+          {isPositive
             ? 'Indicios de enfermedad cardiovascular'
             : 'Sin indicios significativos'}
         </h3>
-        <p className="summary">
-          {result?.prediction === 1
-            ? 'El modelo clasifica este perfil como positivo. Recomendamos consultar un profesional de la salud para una evaluación.'
-            : 'El modelo clasifica este perfil como negativo. Mantén tus hábitos saludables y revisiones periódicas.'}
-        </p>
+        {/* Static fallback summary — only shown when the GPT analysis is
+            unavailable (backend missing OPENAI_API_KEY or upstream error).
+            When the AI is active, its personalised analysis takes this role. */}
+        {(analysisState === 'hidden' || analysisState === 'idle') && (
+          <p className="summary">
+            {isPositive
+              ? 'El modelo clasifica este perfil como positivo. Recomendamos consultar un profesional de la salud para una evaluación.'
+              : 'El modelo clasifica este perfil como negativo. Mantén tus hábitos saludables y revisiones periódicas.'}
+          </p>
+        )}
+
+        {/* AI analysis card (silently hidden if backend disabled it) */}
+        {analysisState !== 'hidden' && analysisState !== 'idle' && (
+          <div className={`ai-analysis ${analysisState === 'loading' ? 'is-loading' : 'is-done'}`}>
+            {/* Hanging heart mascot — swings gently from the top-right of the card
+                like a tiny chimpanzee gripping the edge. Decorative only. */}
+            <span className="ai-mascot" aria-hidden>
+              <svg viewBox="0 0 40 52" xmlns="http://www.w3.org/2000/svg">
+                {/* Arms reaching up to "grip" the top edge */}
+                <path d="M14 17 Q 11 9, 12 3" stroke="#C26764" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                <path d="M26 17 Q 29 9, 28 3" stroke="#C26764" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+                {/* Hands gripping (little circles) */}
+                <circle cx="12" cy="3"  r="2.6" fill="#C26764" />
+                <circle cx="28" cy="3"  r="2.6" fill="#C26764" />
+                {/* Heart-shaped body */}
+                <path
+                  d="M20 38 C 12 30, 8 22, 14 18 C 17 16, 19.5 18, 20 19.6 C 20.5 18, 23 16, 26 18 C 32 22, 28 30, 20 38 Z"
+                  fill="#EE9695"
+                  stroke="#C26764"
+                  strokeWidth="1.3"
+                />
+                {/* Eyes: white sclera + dark pupils */}
+                <ellipse cx="16.5" cy="22.6" rx="1.8" ry="2.1" fill="#fff" />
+                <ellipse cx="23.5" cy="22.6" rx="1.8" ry="2.1" fill="#fff" />
+                <circle  cx="16.8" cy="23.1" r="1"     fill="#3D2725" className="mascot-eye" />
+                <circle  cx="23.8" cy="23.1" r="1"     fill="#3D2725" className="mascot-eye" />
+                {/* Smile */}
+                <path d="M17 27.5 Q 20 30, 23 27.5" stroke="#3D2725" strokeWidth="1.1" fill="none" strokeLinecap="round" />
+                {/* Cheek blush */}
+                <circle cx="13.8" cy="26" r="1.4" fill="rgba(238, 150, 149, 0.55)" />
+                <circle cx="26.2" cy="26" r="1.4" fill="rgba(238, 150, 149, 0.55)" />
+              </svg>
+            </span>
+
+            <div className="ai-analysis-head">
+              <span className="ai-sparkle" aria-hidden>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l1.6 4.6L18 8.2l-4.4 1.6L12 14.4 10.4 9.8 6 8.2l4.4-1.6L12 2zM19 13l.8 2.3 2.2.8-2.2.8L19 19.2l-.8-2.3-2.2-.8 2.2-.8L19 13zM5 14l.6 1.8L7.4 16.4l-1.8.6L5 18.8l-.6-1.8L2.6 16.4l1.8-.6L5 14z" />
+                </svg>
+              </span>
+              <span className="ai-eyebrow">
+                Análisis con IA
+                {analysisModel && (
+                  <>
+                    <span className="ai-eyebrow-sep" aria-hidden>·</span>
+                    <span className="ai-model-name">{analysisModel}</span>
+                  </>
+                )}
+              </span>
+            </div>
+            <div className="ai-analysis-body">
+              {analysisState === 'loading' ? (
+                <div className="ai-skeleton" aria-busy="true" aria-live="polite">
+                  <span className="ai-line w-95" />
+                  <span className="ai-line w-100" />
+                  <span className="ai-line w-70" />
+                </div>
+              ) : (
+                <p className="ai-text">{analysis}</p>
+              )}
+            </div>
+            {analysisState === 'done' && (
+              <p className="ai-disclaimer">
+                Orientación informativa generada con IA · no sustituye un diagnóstico médico.
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="factor-list">
           {factors.map((f, i) => (
