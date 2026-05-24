@@ -397,14 +397,9 @@ export default function Pipeline() {
         {/* Header ---------------------------------------------------------- */}
         <div className="section-head reveal">
           <span className="eyebrow">Orquestación · Databricks Jobs</span>
-          <h2>DAG end-to-end</h2>
+          <h2>Databricks Job</h2>
           <p className="lead">
-            El job <code>cardio_end_to_end</code> se dispara todos los días a las 09:30 (BOG)
-            y encadena dos sub-pipelines: <code>cardio_data_pipeline</code> que refresca el
-            medallion completo (bronze → silver → gold + 4 dimensiones), y
-            <code> cardio_ml_pipeline</code> que reentrena XGBoost, promueve el champion y
-            actualiza el endpoint de Model Serving. Cada nodo es un notebook real definido
-            en los YAMLs del job.
+            Job automatizado con ejecución diaria a las 9:30 a. m. (BOG), encargado de actualizar el pipeline de datos y reentrenar el modelo de machine learning basado en XGBoost.
           </p>
           <p className="dag-hint">
             <span className="hint-dot" /> Hover sobre cualquier tarea para resaltar su linaje (upstream + downstream).

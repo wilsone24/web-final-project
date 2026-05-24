@@ -27,7 +27,7 @@ export default function Landing() {
               <p className="hero-lead">
                 CardIAc combina un pipeline medallion en Databricks con un modelo XGBoost servido
                 como endpoint REST. Estima la probabilidad de enfermedad cardiovascular a partir
-                de signos vitales, perfil clínico y hábitos — paciente por paciente o en lote.
+                de signos vitales, perfil clínico y hábitos paciente por paciente o en lote.
               </p>
 
               <div className="hero-actions">
