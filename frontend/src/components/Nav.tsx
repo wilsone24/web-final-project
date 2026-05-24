@@ -7,8 +7,11 @@ export default function Nav() {
     location.pathname.startsWith('/predict')   ||
     location.pathname.startsWith('/dashboard') ||
     location.pathname.startsWith('/pipeline');
-  const [scrolled, setScrolled] = useState<boolean>(isInner);
 
+  const [scrolled, setScrolled] = useState<boolean>(isInner);
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
+
+  // Scroll-driven "scrolled" state for the glass bg on the landing.
   useEffect(() => {
     if (isInner) {
       setScrolled(true);
@@ -20,8 +23,24 @@ export default function Nav() {
     return () => window.removeEventListener('scroll', onScroll);
   }, [isInner]);
 
+  // Close the mobile menu whenever the route changes (link clicked).
+  useEffect(() => { setMenuOpen(false); }, [location.pathname, location.hash]);
+
+  // Close on Escape, and lock body scroll while the drawer is open.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false); };
+    window.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [menuOpen]);
+
   return (
-    <header className={`nav${scrolled ? ' scrolled' : ''}`}>
+    <header className={`nav${scrolled ? ' scrolled' : ''}${menuOpen ? ' menu-open' : ''}`}>
       <div className="nav-inner">
         <Link to="/" className="brand">
           <span className="brand-mark">
@@ -32,9 +51,21 @@ export default function Nav() {
           <span className="brand-name">Card<span>IA</span>c</span>
         </Link>
 
-        <ul className="nav-links">
-          <li><a href={isInner ? '/#features' : '#features'}>Plataforma</a></li>
-          <li><a href={isInner ? '/#architecture' : '#architecture'}>Arquitectura</a></li>
+        {/* Hamburger / close toggle — hidden on desktop via CSS media query */}
+        <button
+          type="button"
+          className={`nav-toggle${menuOpen ? ' is-open' : ''}`}
+          aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
+          aria-expanded={menuOpen}
+          aria-controls="primary-navigation"
+          onClick={() => setMenuOpen((o) => !o)}
+        >
+          <span /><span /><span />
+        </button>
+
+        <ul id="primary-navigation" className={`nav-links${menuOpen ? ' is-open' : ''}`}>
+          <li><a href={isInner ? '/#features'     : '#features'}     onClick={() => setMenuOpen(false)}>Plataforma</a></li>
+          <li><a href={isInner ? '/#architecture' : '#architecture'} onClick={() => setMenuOpen(false)}>Arquitectura</a></li>
           <li>
             <NavLink to="/pipeline" className={({ isActive }) => isActive ? 'active' : ''}>
               Pipeline
@@ -52,6 +83,9 @@ export default function Nav() {
           </li>
         </ul>
       </div>
+
+      {/* Backdrop sits behind the drawer but in front of the page content */}
+      {menuOpen && <div className="nav-backdrop" onClick={() => setMenuOpen(false)} aria-hidden />}
     </header>
   );
 }
