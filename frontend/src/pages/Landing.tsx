@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useRef, type ReactNode } from 'react';
 import useReveal from '../hooks/useReveal';
 
 function ArrowRight() {
@@ -8,42 +7,6 @@ function ArrowRight() {
       <path d="M5 12h14M13 6l6 6-6 6" />
     </svg>
   );
-}
-
-interface CounterStatProps {
-  target: number;
-  suffix?: string;
-  children: ReactNode;
-}
-
-function CounterStat({ target, suffix = '', children }: CounterStatProps) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || !('IntersectionObserver' in window)) {
-      if (el) el.textContent = (target >= 1000 ? (target / 1000).toFixed(0) + 'k' : String(target)) + suffix;
-      return;
-    }
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (!e.isIntersecting) return;
-        const duration = 1400;
-        const start = performance.now();
-        const tick = (t: number) => {
-          const p = Math.min(1, (t - start) / duration);
-          const eased = 1 - Math.pow(1 - p, 3);
-          const v = Math.floor(target * eased);
-          if (el) el.textContent = (v >= 1000 ? (v / 1000).toFixed(0) + 'k' : String(v)) + suffix;
-          if (p < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-        io.unobserve(el);
-      });
-    }, { threshold: 0.4 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [target, suffix]);
-  return <div className="num" ref={ref}>{children}</div>;
 }
 
 export default function Landing() {
@@ -81,20 +44,6 @@ export default function Landing() {
                 </a>
               </div>
 
-              <div className="hero-stats">
-                <div className="stat">
-                  <CounterStat target={70000}>70k</CounterStat>
-                  <div className="lbl">Pacientes</div>
-                </div>
-                <div className="stat">
-                  <div className="num">12</div>
-                  <div className="lbl">Features ML</div>
-                </div>
-                <div className="stat">
-                  <div className="num">~73%</div>
-                  <div className="lbl">ROC-AUC test</div>
-                </div>
-              </div>
             </div>
 
             <div className="hero-visual reveal">
