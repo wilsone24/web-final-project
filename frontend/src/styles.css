@@ -760,7 +760,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 .result-loading .loading-hint {
   font-size: 0.78rem;
   color: var(--c-text-3);
-  margin-top: 8px;
+  margin: 8px auto 0;
   max-width: 280px;
   text-align: center;
 }
