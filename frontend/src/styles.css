@@ -4,16 +4,7 @@
 
 :root {
   --c-no-cvd:    #9DD9BB;
-  /* Primary brand colour — used everywhere the page touches "CardIAc" identity
-     (logo gradient, gradient text, eyebrows, primary buttons, active route,
-     section accents, DAG arrows, etc.). Swapped from the original coral
-     (#EE9695) to a pastel blue. */
-  --c-cvd:       #5A95D5;
-  --c-cvd-deep:  #3F7AB8;
-  /* Warning coral kept for the few places that really need to read "atención"
-     — verdict pill when prediction = 1, form error background, donut CVD
-     legend. */
-  --c-warning:   #EE9695;
+  --c-cvd:       #EE9695;
   --c-primary:   #9FC1E8;
   --c-secondary: #C3BCE5;
   --c-accent:    #F4B58D;
@@ -106,7 +97,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 
 .bg-canvas::after {
   bottom: -15%; right: -10%;
-  background: radial-gradient(circle, var(--c-secondary) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--c-rose) 0%, transparent 70%);
   animation-delay: -9s;
 }
 
@@ -167,9 +158,9 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 
 .brand-mark {
   width: 38px; height: 38px; border-radius: 12px;
-  background: linear-gradient(135deg, var(--c-cvd) 0%, var(--c-secondary) 100%);
+  background: linear-gradient(135deg, var(--c-cvd) 0%, var(--c-accent) 100%);
   display: grid; place-items: center;
-  box-shadow: 0 6px 18px rgba(90, 149, 213, 0.42);
+  box-shadow: 0 6px 18px rgba(238, 150, 149, 0.45);
   position: relative; overflow: hidden;
 }
 
@@ -197,7 +188,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 }
 
 .nav-links a:hover { color: var(--c-text); background: rgba(255, 255, 255, 0.55); }
-.nav-links a.active { color: #fff; background: linear-gradient(135deg, var(--c-cvd), var(--c-cvd-deep)); }
+.nav-links a.active { color: #fff; background: linear-gradient(135deg, var(--c-cvd), #E47875); }
 
 /* Hamburger toggle — hidden on desktop, revealed in the mobile media query */
 
@@ -266,12 +257,12 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 .btn svg { width: 18px; height: 18px; transition: transform 0.3s var(--ease); }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--c-cvd) 0%, var(--c-cvd-deep) 100%);
+  background: linear-gradient(135deg, var(--c-cvd) 0%, var(--c-accent) 100%);
   color: #fff;
-  box-shadow: 0 10px 28px rgba(90, 149, 213, 0.42);
+  box-shadow: 0 10px 28px rgba(238, 150, 149, 0.45);
 }
 
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 18px 40px rgba(90, 149, 213, 0.52); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 18px 40px rgba(238, 150, 149, 0.55); }
 .btn-primary:hover svg { transform: translateX(4px); }
 
 .btn-primary:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
@@ -329,10 +320,10 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 
 .heart-orb {
   width: 78%; aspect-ratio: 1; border-radius: 50%;
-  background: radial-gradient(circle at 30% 28%, #fff 0%, var(--c-primary) 40%, var(--c-cvd) 82%);
+  background: radial-gradient(circle at 30% 28%, #fff 0%, var(--c-rose) 35%, var(--c-cvd) 78%);
   box-shadow:
-    inset 0 -30px 60px rgba(63, 122, 184, 0.4),
-    0 30px 90px rgba(63, 122, 184, 0.32),
+    inset 0 -30px 60px rgba(238, 150, 149, 0.4),
+    0 30px 90px rgba(238, 150, 149, 0.35),
     var(--shadow-glow);
   position: relative;
   animation: heartbeat 1.6s ease-in-out infinite;
@@ -382,7 +373,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   box-shadow: 0 0 0 4px rgba(157, 217, 187, 0.25);
 }
 
-.metric-chip.alert .dot { background: var(--c-warning); box-shadow: 0 0 0 4px rgba(238, 150, 149, 0.25); }
+.metric-chip.alert .dot { background: var(--c-cvd); box-shadow: 0 0 0 4px rgba(238, 150, 149, 0.25); }
 
 .metric-chip.c1 { top: 8%; right: 0%; animation-delay: -1s; }
 .metric-chip.c2 { bottom: 12%; left: -2%; animation-delay: -2.5s; }
@@ -441,7 +432,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 .feature-icon.i-bronze { background: linear-gradient(135deg, var(--c-accent) 0%, #E89669 100%); }
 .feature-icon.i-silver { background: linear-gradient(135deg, var(--c-primary) 0%, #6FA3D8 100%); }
 .feature-icon.i-gold   { background: linear-gradient(135deg, var(--c-secondary) 0%, #A096D2 100%); }
-.feature-icon.i-ml     { background: linear-gradient(135deg, var(--c-cvd) 0%, var(--c-cvd-deep) 100%); }
+.feature-icon.i-ml     { background: linear-gradient(135deg, var(--c-cvd) 0%, #E47875 100%); }
 .feature-icon.i-eda    { background: linear-gradient(135deg, var(--c-no-cvd) 0%, #6FC598 100%); }
 .feature-icon.i-serve  { background: linear-gradient(135deg, var(--c-cream) 0%, #E8C387 100%); }
 
@@ -525,7 +516,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 /* CTA */
 .cta-card {
   padding: 70px 60px; text-align: center;
-  background: linear-gradient(135deg, rgba(90, 149, 213, 0.18) 0%, rgba(159, 193, 232, 0.18) 50%, rgba(195, 188, 229, 0.18) 100%);
+  background: linear-gradient(135deg, rgba(238, 150, 149, 0.18) 0%, rgba(159, 193, 232, 0.18) 50%, rgba(195, 188, 229, 0.18) 100%);
   position: relative; overflow: hidden;
 }
 
@@ -657,7 +648,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 /* Yes / No (smoker, alcohol, active) — coral for "yes" risk factor,
    mint for "no". These override the lavender default. */
 .pill-group.cvd input:checked + label.option-yes {
-  background: linear-gradient(135deg, var(--c-warning), #E47875);
+  background: linear-gradient(135deg, var(--c-cvd), #E47875);
   color: #fff;
   box-shadow: 0 3px 10px rgba(238, 150, 149, 0.28);
 }
@@ -668,7 +659,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 }
 
 .pill-group.active-pill input:checked + label.option-yes {
-  background: linear-gradient(135deg, var(--c-warning), #E47875);
+  background: linear-gradient(135deg, var(--c-cvd), #E47875);
   color: #fff;
 }
 .pill-group.active-pill input:checked + label.option-no {
@@ -697,7 +688,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   color: var(--c-text); margin-top: 4px;
 }
 
-.computed .val.warn { color: var(--c-warning); }
+.computed .val.warn { color: var(--c-cvd); }
 
 .form-foot { margin-top: 32px; }
 
@@ -857,7 +848,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   flex-shrink: 0; color: #fff;
 }
 
-.factor.up   .factor-icon { background: var(--c-warning); }
+.factor.up   .factor-icon { background: var(--c-cvd); }
 .factor.down .factor-icon { background: var(--c-no-cvd); }
 .factor.neutral .factor-icon { background: var(--c-text-3); }
 
@@ -948,7 +939,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 .kpi-card.kpi-primary   { color: var(--c-primary); }
 .kpi-card.kpi-secondary { color: var(--c-secondary); }
 .kpi-card.kpi-accent    { color: var(--c-accent); }
-.kpi-card.kpi-cvd       { color: var(--c-warning); }
+.kpi-card.kpi-cvd       { color: var(--c-cvd); }
 
 .kpi-icon {
   width: 50px; height: 50px;
@@ -990,10 +981,10 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   grid-template-columns: auto auto 1fr;
   align-items: center; gap: 24px;
   margin-bottom: 32px;
-  color: var(--c-warning);
+  color: var(--c-cvd);
 }
 
-.kpi-bp .kpi-icon { background: var(--c-warning); }
+.kpi-bp .kpi-icon { background: var(--c-cvd); }
 
 .kpi-bp-vals {
   display: flex; align-items: baseline; gap: 4px;
@@ -1013,7 +1004,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
     var(--c-no-cvd) 0%,
     var(--c-cream) 40%,
     var(--c-accent) 65%,
-    var(--c-warning) 100%);
+    var(--c-cvd) 100%);
   position: relative; overflow: hidden;
 }
 
@@ -1225,7 +1216,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
     font-size: 1rem;
     border-radius: 12px;
   }
-  .nav-links a.active { background: linear-gradient(135deg, var(--c-cvd), var(--c-cvd-deep)); color: #fff; }
+  .nav-links a.active { background: linear-gradient(135deg, var(--c-cvd), #E47875); color: #fff; }
 }
 
 @media (max-width: 600px) {
@@ -1263,14 +1254,14 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 .orch-dot {
   width: 12px; height: 12px; border-radius: 50%;
   background: var(--c-cvd);
-  box-shadow: 0 0 0 6px rgba(90, 149, 213, 0.22);
+  box-shadow: 0 0 0 6px rgba(238, 150, 149, 0.2);
   animation: orch-pulse 1.8s ease-in-out infinite;
   flex-shrink: 0;
 }
 
 @keyframes orch-pulse {
-  0%, 100% { box-shadow: 0 0 0 6px  rgba(90, 149, 213, 0.22); }
-  50%      { box-shadow: 0 0 0 12px rgba(90, 149, 213, 0.05); }
+  0%, 100% { box-shadow: 0 0 0 6px rgba(238, 150, 149, 0.2); }
+  50%      { box-shadow: 0 0 0 12px rgba(238, 150, 149, 0.05); }
 }
 
 .orch-name {
@@ -1443,11 +1434,11 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 /* Floating bridge note ------------------------------------------------- */
 
 .bridge-note rect {
-  fill: rgba(248, 252, 255, 0.96);
-  stroke: rgba(90, 149, 213, 0.55);
+  fill: rgba(255, 248, 248, 0.96);
+  stroke: rgba(238, 150, 149, 0.55);
   stroke-width: 1.2;
   stroke-dasharray: 4 3;
-  filter: drop-shadow(0 4px 10px rgba(90, 149, 213, 0.18));
+  filter: drop-shadow(0 4px 10px rgba(238, 150, 149, 0.18));
 }
 
 .bridge-note text {
@@ -1575,8 +1566,8 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   width: 64px; height: 64px;
   display: grid; place-items: center;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(90, 149, 213, 0.20), rgba(195, 188, 229, 0.22));
-  color: var(--c-cvd-deep);
+  background: linear-gradient(135deg, rgba(238, 150, 149, 0.18), rgba(244, 181, 141, 0.18));
+  color: #B0524F;
   margin-bottom: 6px;
 }
 .batch-drop-icon svg { width: 30px; height: 30px; }
@@ -1824,7 +1815,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
     var(--c-no-cvd) 0%,
     var(--c-cream) 45%,
     var(--c-accent) 70%,
-    var(--c-warning) 100%);
+    var(--c-cvd) 100%);
   transition: width 0.6s var(--ease);
 }
 .prob-num {
@@ -1900,7 +1891,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
      the bottom-left, soft white base. Gives the card a quietly luxurious feel
      without competing with the gauge above or the factor list below. */
   background:
-    radial-gradient(ellipse 60% 80% at 100% 0%, rgba(90, 149, 213, 0.12), transparent 70%),
+    radial-gradient(ellipse 60% 80% at 100% 0%, rgba(238, 150, 149, 0.10), transparent 70%),
     radial-gradient(ellipse 80% 60% at 0% 100%, rgba(195, 188, 229, 0.16), transparent 70%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.65) 100%);
   border: 1px solid rgba(123, 110, 175, 0.16);
@@ -1931,7 +1922,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   display: inline-grid; place-items: center;
   width: 26px; height: 26px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(90, 149, 213, 0.24), rgba(90, 149, 213, 0.08));
+  background: radial-gradient(circle, rgba(238, 150, 149, 0.22), rgba(238, 150, 149, 0.08));
   color: var(--c-cvd);
   flex-shrink: 0;
   animation: ai-sparkle-pulse 2.6s ease-in-out infinite;
@@ -1939,8 +1930,8 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 .ai-sparkle svg { width: 16px; height: 16px; }
 
 @keyframes ai-sparkle-pulse {
-  0%, 100% { transform: scale(1);    box-shadow: 0 0 0 0   rgba(90, 149, 213, 0.38); }
-  50%      { transform: scale(1.07); box-shadow: 0 0 0 6px rgba(90, 149, 213, 0);    }
+  0%, 100% { transform: scale(1);    box-shadow: 0 0 0 0   rgba(238, 150, 149, 0.35); }
+  50%      { transform: scale(1.07); box-shadow: 0 0 0 6px rgba(238, 150, 149, 0);   }
 }
 
 .ai-eyebrow {
@@ -2109,7 +2100,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 .hint-dot {
   width: 8px; height: 8px; border-radius: 50%;
   background: var(--c-cvd);
-  box-shadow: 0 0 0 4px rgba(90, 149, 213, 0.20);
+  box-shadow: 0 0 0 4px rgba(238, 150, 149, 0.18);
 }
 
 /* --- Reveal-on-scroll: every SVG element fades in once ---------------- */
