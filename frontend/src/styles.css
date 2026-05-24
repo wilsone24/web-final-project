@@ -574,22 +574,33 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   border-radius: var(--r-pill);
   font-weight: 500; font-size: 0.94rem;
   color: var(--c-text-2); cursor: pointer;
-  transition: color 0.25s var(--ease), background 0.25s var(--ease);
+  transition: color 0.25s var(--ease), background 0.25s var(--ease), box-shadow 0.25s var(--ease);
 }
 
+/* Subtle hover on the non-selected option — the user gets feedback that the
+   pill is clickable before they commit to a choice. */
+.pill-group label:hover { color: var(--c-text); background: rgba(255, 255, 255, 0.5); }
+
+/* Default selected state (gender group). Lavender gradient + white text gives
+   a clearly distinct "active" look against the soft white container, while
+   staying gender-neutral and on-palette. */
 .pill-group input:checked + label {
-  background: #fff;
-  color: var(--c-text);
-  box-shadow: var(--shadow-sm);
+  background: linear-gradient(135deg, var(--c-secondary) 0%, #A096D2 100%);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(123, 110, 175, 0.22);
 }
 
+/* Yes / No (smoker, alcohol, active) — coral for "yes" risk factor,
+   mint for "no". These override the lavender default. */
 .pill-group.cvd input:checked + label.option-yes {
   background: linear-gradient(135deg, var(--c-cvd), #E47875);
   color: #fff;
+  box-shadow: 0 3px 10px rgba(238, 150, 149, 0.28);
 }
 .pill-group.cvd input:checked + label.option-no {
   background: linear-gradient(135deg, var(--c-no-cvd), #6FC598);
   color: #fff;
+  box-shadow: 0 3px 10px rgba(157, 217, 187, 0.32);
 }
 
 .pill-group.active-pill input:checked + label.option-yes {
