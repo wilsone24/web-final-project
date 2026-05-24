@@ -56,7 +56,7 @@ export default function Landing() {
                 </svg>
               </div>
               <div className="metric-chip c1"><span className="dot"></span> 115 / 75 mmHg</div>
-              <div className="metric-chip c2 alert"><span className="dot"></span> Riesgo: alto</div>
+              <div className="metric-chip c2 alert"><span className="dot"></span> Con Indicios</div>
               <div className="metric-chip c3"><span className="dot"></span> BMI 22.04</div>
             </div>
           </div>
