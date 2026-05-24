@@ -188,7 +188,7 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
 }
 
 .nav-links a:hover { color: var(--c-text); background: rgba(255, 255, 255, 0.55); }
-.nav-links a.active { color: var(--c-text); background: rgba(255, 255, 255, 0.65); }
+.nav-links a.active { color: #fff; background: linear-gradient(135deg, var(--c-cvd), #E47875); }
 
 /* Buttons */
 .btn {
@@ -588,6 +588,15 @@ button { font-family: inherit; cursor: pointer; border: 0; background: none; }
   color: #fff;
 }
 .pill-group.cvd input:checked + label.option-no {
+  background: linear-gradient(135deg, var(--c-no-cvd), #6FC598);
+  color: #fff;
+}
+
+.pill-group.active-pill input:checked + label.option-yes {
+  background: linear-gradient(135deg, var(--c-cvd), #E47875);
+  color: #fff;
+}
+.pill-group.active-pill input:checked + label.option-no {
   background: linear-gradient(135deg, var(--c-no-cvd), #6FC598);
   color: #fff;
 }

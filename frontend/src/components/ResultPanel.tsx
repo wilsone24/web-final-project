@@ -126,7 +126,7 @@ export default function ResultPanel({
           <div className="gauge-center">
             <div>
               <div className="gauge-pct">{displayPct.toFixed(1)}%</div>
-              <div className="gauge-lbl">Probabilidad CVD</div>
+              <div className="gauge-lbl">Probabilidad ECV</div>
             </div>
           </div>
         </div>

@@ -238,13 +238,13 @@ export default function PredictForm({ onSubmit, isLoading }: PredictFormProps) {
           </div>
           <div className="field full">
             <label>¿Realiza actividad física regularmente?</label>
-            <div className="pill-group cvd">
+            <div className="pill-group active-pill">
               <input type="radio" name="active" id="act-no" value="0"
                      checked={form.active === '0'} onChange={set('active')} />
-              <label htmlFor="act-no" className="option-no">No</label>
+              <label htmlFor="act-no" className="option-yes">No</label>
               <input type="radio" name="active" id="act-yes" value="1"
                      checked={form.active === '1'} onChange={set('active')} />
-              <label htmlFor="act-yes" className="option-yes">Sí</label>
+              <label htmlFor="act-yes" className="option-no">Sí</label>
             </div>
           </div>
         </div>

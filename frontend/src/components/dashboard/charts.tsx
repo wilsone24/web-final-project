@@ -74,7 +74,7 @@ export function CvdByCategoryChart({
         <Tooltip
           content={
             <GlassTooltip
-              formatter={(v, name) => name === 'Tasa CVD' ? pct(v) : intFmt(v)}
+              formatter={(v, name) => name === 'Tasa ECV' ? pct(v) : intFmt(v)}
             />
           }
           cursor={{ fill: 'rgba(159, 193, 232, 0.08)' }}
@@ -92,7 +92,7 @@ export function CvdByCategoryChart({
           yAxisId="right"
           type="monotone"
           dataKey="cvd_rate"
-          name="Tasa CVD"
+          name="Tasa ECV"
           stroke={accent}
           strokeWidth={3}
           dot={{ r: 4, fill: '#fff', stroke: accent, strokeWidth: 2 }}
@@ -128,7 +128,7 @@ export function RateBarChart({
                tickFormatter={(v: number) => `${(v * 100).toFixed(0)}%`} domain={[0, 1]} width={42} />
         <Tooltip content={<GlassTooltip formatter={(v) => pct(v)} />}
                  cursor={{ fill: 'rgba(238, 150, 149, 0.08)' }} />
-        <Bar dataKey="cvd_rate" name="Tasa CVD" fill={barColor}
+        <Bar dataKey="cvd_rate" name="Tasa ECV" fill={barColor}
              radius={[8, 8, 0, 0]} animationDuration={900}>
           {data.map((entry, i) => (
             <Cell
@@ -205,7 +205,7 @@ export function DonutChart({
                 {intFmt(value)}
                 <span className="dl-pct">· {((value / total) * 100).toFixed(1)}%</span>
               </span>
-              <span className="dl-cvd">{pct(d.cvd_rate)} CVD</span>
+              <span className="dl-cvd">{pct(d.cvd_rate)} ECV</span>
             </div>
           );
         })}

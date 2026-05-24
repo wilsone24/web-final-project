@@ -192,8 +192,7 @@ export default function Dashboard() {
             <span className="eyebrow">Dashboard analítico</span>
             <h2>Modelo estrella · gold.fct_cardio_outcomes</h2>
             <p className="lead">
-              Métricas agregadas sobre la población clínica completa, calculadas sobre la vista SCD-2
-              vigente de los últimos 3 años. Los datos quedan en cache hasta que pulses
+              Métricas agregadas sobre la población clínica completa. Los datos quedan en cache hasta que pulses
               <strong> Actualizar</strong> — no se refrescan automáticamente para no saturar el warehouse SQL.
             </p>
           </div>
@@ -229,7 +228,7 @@ export default function Dashboard() {
             accent="primary"
           />
           <KpiCard
-            label="Tasa de CVD"
+            label="Tasa de ECV"
             value={cvdRate}
             format="percent"
             icon={ICON_HEART}
@@ -287,8 +286,8 @@ export default function Dashboard() {
           <ChartCard
             span={2}
             eyebrow="Distribución demográfica"
-            title="Pacientes y tasa de CVD por grupo de edad"
-            subtitle="La línea coral marca el porcentaje con enfermedad cardiovascular dentro del grupo."
+            title="Pacientes y tasa de ECV por grupo de edad"
+            subtitle="La línea coral marca el porcentaje con ECV dentro del grupo."
           >
             <CvdByCategoryChart data={ageData} />
           </ChartCard>
@@ -296,7 +295,7 @@ export default function Dashboard() {
           <ChartCard
             eyebrow="Género"
             title="Composición de la población"
-            subtitle="Distribución total con la tasa de CVD por segmento."
+            subtitle="Distribución total con la tasa de ECV por segmento."
           >
             <DonutChart data={genData} />
           </ChartCard>
@@ -304,7 +303,7 @@ export default function Dashboard() {
           <ChartCard
             eyebrow="Lípidos"
             title="Riesgo según colesterol"
-            subtitle="Tasa de CVD por nivel reportado."
+            subtitle="Tasa de ECV por nivel reportado."
           >
             <RateBarChart data={cholData} />
           </ChartCard>
@@ -312,14 +311,14 @@ export default function Dashboard() {
           <ChartCard
             eyebrow="Glucemia"
             title="Riesgo según glucosa"
-            subtitle="Tasa de CVD por nivel reportado."
+            subtitle="Tasa de ECV por nivel reportado."
           >
             <RateBarChart data={glucData} />
           </ChartCard>
 
           <ChartCard
             eyebrow="Antropometría"
-            title="Pacientes y CVD por rango de BMI"
+            title="Pacientes y ECV por rango de BMI"
             subtitle="Clasificación estándar OMS sobre el BMI calculado en la capa silver."
           >
             <CvdByCategoryChart data={bmiData} colorBase={palette.secondary} accent={palette.cvd} />
@@ -328,7 +327,7 @@ export default function Dashboard() {
           <ChartCard
             span={2}
             eyebrow="Hábitos y comorbilidades"
-            title="Impacto de hábitos de vida sobre la tasa de CVD"
+            title="Impacto de hábitos de vida sobre la tasa de ECV"
             subtitle="Comparación entre presentar o no cada condición. Diferencias grandes indican alta sensibilidad al factor."
           >
             <LifestyleChart data={lifeData} />
