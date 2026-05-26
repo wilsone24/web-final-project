@@ -1,4 +1,5 @@
 import { DBSQLClient } from '@databricks/sql';
+import { createCache } from './cache.js';
 
 type SqlSession = Awaited<ReturnType<DBSQLClient['openSession']>>;
 
@@ -249,53 +250,8 @@ async function runAll(): Promise<DashboardRows> {
 }
 
 // -- In-memory cache ---------------------------------------------------------
-//
-// The cache is kept INDEFINITELY for the life of the backend process. The
-// dataset is gold-layer aggregate stats over a 3-year SCD2 window — it doesn't
-// change minute-to-minute, so the user explicitly decides when to refresh by
-// hitting the dashboard's reload button (which forwards `?refresh=1`). This
-// keeps the SQL warehouse from spinning up on every page load.
 
-interface CacheEntry {
-  data: DashboardRows | null;
-  ts: number;
-  inflight: Promise<DashboardRows> | null;
-}
+const dashboardCache = createCache<DashboardRows>(runAll);
 
-let cache: CacheEntry = { data: null, ts: 0, inflight: null };
-
-export interface DashboardResult {
-  data: DashboardRows;
-  cached: boolean;
-  age: number;
-}
-
-export async function getDashboardData(
-  { force = false }: { force?: boolean } = {},
-): Promise<DashboardResult> {
-  const now = Date.now();
-
-  // Cached forever — only `force` (i.e. `?refresh=1`) bypasses it.
-  if (!force && cache.data) {
-    return { data: cache.data, cached: true, age: now - cache.ts };
-  }
-
-  if (cache.inflight) {
-    const data = await cache.inflight;
-    return { data, cached: false, age: 0 };
-  }
-
-  cache.inflight = runAll();
-  try {
-    const data = await cache.inflight;
-    cache.data = data;
-    cache.ts = Date.now();
-    return { data, cached: false, age: 0 };
-  } finally {
-    cache.inflight = null;
-  }
-}
-
-export function clearDashboardCache(): void {
-  cache = { data: null, ts: 0, inflight: null };
-}
+export const getDashboardData   = dashboardCache.get;
+export const clearDashboardCache = dashboardCache.clear;

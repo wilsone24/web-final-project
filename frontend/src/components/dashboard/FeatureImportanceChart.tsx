@@ -4,6 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell,
 } from 'recharts';
 import { palette } from '../../theme';
+import GlassTooltip from './GlassTooltip';
 import type { FeatureImportanceRow } from '../../types';
 
 // Human-friendly labels for the raw feature names produced by the training
@@ -26,29 +27,6 @@ const FEATURE_LABELS: Record<string, string> = {
 
 function prettyLabel(raw: string): string {
   return FEATURE_LABELS[raw] || raw;
-}
-
-interface TooltipEntry { value?: number; payload?: { feature?: string } }
-interface GlassTooltipProps {
-  active?: boolean;
-  payload?: TooltipEntry[];
-}
-
-function GlassTooltip({ active, payload }: GlassTooltipProps) {
-  if (!active || !payload || !payload.length) return null;
-  const entry  = payload[0];
-  const value  = entry.value ?? 0;
-  const label  = entry.payload?.feature ? prettyLabel(entry.payload.feature) : '';
-  return (
-    <div className="tt-card">
-      <div className="tt-label">{label}</div>
-      <div className="tt-row">
-        <span className="tt-dot" style={{ background: palette.secondary }} />
-        <span className="tt-name">Importancia</span>
-        <span className="tt-value">{(value * 100).toFixed(2)}%</span>
-      </div>
-    </div>
-  );
 }
 
 interface FeatureImportanceChartProps {
@@ -108,9 +86,13 @@ export default function FeatureImportanceChart({ data }: FeatureImportanceChartP
           axisLine={{ stroke: palette.grid }}
           width={140}
         />
-        <Tooltip content={<GlassTooltip />} cursor={{ fill: 'rgba(195, 188, 229, 0.10)' }} />
+        <Tooltip
+          content={<GlassTooltip formatValue={(v) => `${((v ?? 0) * 100).toFixed(2)}%`} />}
+          cursor={{ fill: 'rgba(195, 188, 229, 0.10)' }}
+        />
         <Bar
           dataKey="importance"
+          name="Importancia"
           radius={[0, 8, 8, 0]}
           animationDuration={900}
         >

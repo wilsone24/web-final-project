@@ -1,9 +1,12 @@
 // MLflow REST client for the cardio model registry.
 //
 // Fetches @champion version metadata, the training run's test metrics, and the
-// `tables/feature_importance.csv` artifact produced by ml_train_cardio_classifier.py.
-// Mirrors the in-memory cache pattern of databricks.ts so cold starts on the
-// workspace API don't bite users every page load.
+// `tables/feature_importance.csv` + `tables/threshold_sweep.csv` artifacts
+// produced by ml_train_cardio_classifier.py. Shares the in-memory cache helper
+// with the dashboard so cold starts on the workspace API don't bite users on
+// every page load.
+
+import { createCache } from './cache.js';
 
 const MODEL_NAME = process.env.DATABRICKS_MODEL_NAME
   || 'databricks_service_pf.gold.cardio_classifier';
@@ -417,46 +420,9 @@ async function fetchModelInfoUncached(): Promise<ModelInfo> {
   };
 }
 
-// -- In-memory cache (forever, like dashboard) ------------------------------
+// -- In-memory cache ---------------------------------------------------------
 
-interface CacheEntry {
-  data: ModelInfo | null;
-  ts: number;
-  inflight: Promise<ModelInfo> | null;
-}
+const modelInfoCache = createCache<ModelInfo>(fetchModelInfoUncached);
 
-let cache: CacheEntry = { data: null, ts: 0, inflight: null };
-
-export interface ModelInfoResult {
-  data: ModelInfo;
-  cached: boolean;
-  age: number;
-}
-
-export async function getModelInfo(
-  { force = false }: { force?: boolean } = {},
-): Promise<ModelInfoResult> {
-  const now = Date.now();
-
-  if (!force && cache.data) {
-    return { data: cache.data, cached: true, age: now - cache.ts };
-  }
-  if (cache.inflight) {
-    const data = await cache.inflight;
-    return { data, cached: false, age: 0 };
-  }
-
-  cache.inflight = fetchModelInfoUncached();
-  try {
-    const data = await cache.inflight;
-    cache.data = data;
-    cache.ts   = Date.now();
-    return { data, cached: false, age: 0 };
-  } finally {
-    cache.inflight = null;
-  }
-}
-
-export function clearModelInfoCache(): void {
-  cache = { data: null, ts: 0, inflight: null };
-}
+export const getModelInfo        = modelInfoCache.get;
+export const clearModelInfoCache = modelInfoCache.clear;

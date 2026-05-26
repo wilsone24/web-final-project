@@ -3,40 +3,10 @@ import {
   ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ReferenceLine,
 } from 'recharts';
 import { palette } from '../../theme';
+import GlassTooltip from './GlassTooltip';
 import type { ThresholdSweepRow } from '../../types';
 
-interface TooltipEntry { color?: string; name?: string; value?: number; }
-interface GlassTooltipProps {
-  active?: boolean;
-  payload?: TooltipEntry[];
-  label?: number;
-}
-
 const pct = (v: number | undefined): string => (v == null ? '—' : `${(v * 100).toFixed(1)}%`);
-
-function GlassTooltip({ active, payload, label }: GlassTooltipProps) {
-  if (!active || !payload || !payload.length) return null;
-  // Area + Line can emit a duplicate F1 entry — de-dupe by series name.
-  const seen = new Set<string>();
-  const rows = payload.filter((p) => {
-    const n = p.name ?? '';
-    if (seen.has(n)) return false;
-    seen.add(n);
-    return true;
-  });
-  return (
-    <div className="tt-card">
-      <div className="tt-label">Umbral {Number(label).toFixed(2)}</div>
-      {rows.map((p, i) => (
-        <div className="tt-row" key={i}>
-          <span className="tt-dot" style={{ background: p.color }}></span>
-          <span className="tt-name">{p.name}</span>
-          <span className="tt-value">{pct(p.value)}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 // Pill marker sitting at the top of the optimal-threshold reference line,
 // rendered inside the plot area so it never collides with the card header.
@@ -104,7 +74,16 @@ export default function ThresholdSweepChart({ data, optimal }: ThresholdSweepCha
           tickFormatter={(v: number) => `${(v * 100).toFixed(0)}%`}
           width={42}
         />
-        <Tooltip content={<GlassTooltip />} cursor={{ stroke: palette.grid, strokeWidth: 1 }} />
+        <Tooltip
+          content={
+            <GlassTooltip
+              dedupe
+              formatLabel={(l) => `Umbral ${Number(l).toFixed(2)}`}
+              formatValue={(v) => pct(v)}
+            />
+          }
+          cursor={{ stroke: palette.grid, strokeWidth: 1 }}
+        />
         <Legend wrapperStyle={{ paddingTop: 10, fontSize: 12 }} iconType="plainline" />
 
         {optimal !== null ? (

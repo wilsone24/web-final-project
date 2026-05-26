@@ -5,39 +5,8 @@ import {
   Line, ComposedChart,
 } from 'recharts';
 import { palette } from '../../theme';
+import GlassTooltip from './GlassTooltip';
 import type { DashboardCategoryRow, DashboardLifestyleRow } from '../../types';
-
-// Recharts tooltip payload is loosely typed; we narrow only what we use.
-interface TooltipEntry {
-  color?: string;
-  name?: string;
-  value?: number;
-}
-
-interface GlassTooltipProps {
-  active?: boolean;
-  payload?: TooltipEntry[];
-  label?: string;
-  formatter?: (value: number | undefined, name: string | undefined, entry: TooltipEntry) => string;
-}
-
-function GlassTooltip({ active, payload, label, formatter }: GlassTooltipProps) {
-  if (!active || !payload || !payload.length) return null;
-  return (
-    <div className="tt-card">
-      <div className="tt-label">{label}</div>
-      {payload.map((p, i) => (
-        <div className="tt-row" key={i}>
-          <span className="tt-dot" style={{ background: p.color }}></span>
-          <span className="tt-name">{p.name}</span>
-          <span className="tt-value">
-            {formatter ? formatter(p.value, p.name, p) : String(p.value)}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 const axisStyle = { fontSize: 11, fill: palette.text3, fontFamily: 'Inter, sans-serif' } as const;
 const pct = (v: number | undefined): string => (v == null ? '—' : `${(v * 100).toFixed(1)}%`);
@@ -74,7 +43,7 @@ export function CvdByCategoryChart({
         <Tooltip
           content={
             <GlassTooltip
-              formatter={(v, name) => name === 'Tasa ECV' ? pct(v) : intFmt(v)}
+              formatValue={(v, name) => name === 'Tasa ECV' ? pct(v) : intFmt(v)}
             />
           }
           cursor={{ fill: 'rgba(159, 193, 232, 0.08)' }}
@@ -126,7 +95,7 @@ export function RateBarChart({
         <XAxis dataKey={labelKey as string} tick={axisStyle} tickLine={false} axisLine={{ stroke: palette.grid }} />
         <YAxis tick={axisStyle} tickLine={false} axisLine={{ stroke: palette.grid }}
                tickFormatter={(v: number) => `${(v * 100).toFixed(0)}%`} domain={[0, 1]} width={42} />
-        <Tooltip content={<GlassTooltip formatter={(v) => pct(v)} />}
+        <Tooltip content={<GlassTooltip formatValue={(v) => pct(v)} />}
                  cursor={{ fill: 'rgba(238, 150, 149, 0.08)' }} />
         <Bar dataKey="cvd_rate" name="Tasa ECV" fill={barColor}
              radius={[8, 8, 0, 0]} animationDuration={900}>
@@ -185,7 +154,7 @@ export function DonutChart({
               <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip content={<GlassTooltip formatter={(v) => intFmt(v)} />} />
+          <Tooltip content={<GlassTooltip formatValue={(v) => intFmt(v)} />} />
         </PieChart>
       </ResponsiveContainer>
 
@@ -231,7 +200,7 @@ export function LifestyleChart({ data }: LifestyleChartProps) {
         <XAxis dataKey="label" tick={axisStyle} tickLine={false} axisLine={{ stroke: palette.grid }} />
         <YAxis tick={axisStyle} tickLine={false} axisLine={{ stroke: palette.grid }}
                tickFormatter={(v: number) => `${(v * 100).toFixed(0)}%`} domain={[0, 1]} width={42} />
-        <Tooltip content={<GlassTooltip formatter={(v) => pct(v)} />}
+        <Tooltip content={<GlassTooltip formatValue={(v) => pct(v)} />}
                  cursor={{ fill: 'rgba(159, 193, 232, 0.08)' }} />
         <Legend wrapperStyle={{ paddingTop: 12, fontSize: 12 }} iconType="circle" />
         <Bar dataKey="cvd_with"    name="Con el factor"  fill={palette.cvd}
