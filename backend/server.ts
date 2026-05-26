@@ -2,6 +2,7 @@ import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import 'dotenv/config';
 import { getDashboardData, clearDashboardCache } from './databricks.js';
+import { getModelInfo, clearModelInfoCache } from './mlflow.js';
 
 const app  = express();
 const PORT = Number(process.env.PORT) || 8000;
@@ -52,6 +53,30 @@ app.get('/dashboard', async (req: Request, res: Response) => {
     console.error('[CardioProxy] Dashboard query failed:', err);
     res.status(502).json({
       error: 'dashboard_query_failed',
+      detail,
+    });
+  }
+});
+
+app.get('/model-info', async (req: Request, res: Response) => {
+  try {
+    const force = req.query.refresh === '1' || req.query.refresh === 'true';
+    if (force) clearModelInfoCache();
+
+    const { data, cached, age } = await getModelInfo({ force });
+
+    res.set('Cache-Control', 'no-store');
+    res.json({
+      cached,
+      cacheAgeMs: age,
+      generatedAt: new Date().toISOString(),
+      ...data,
+    });
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error('[CardioProxy] Model info query failed:', err);
+    res.status(502).json({
+      error: 'model_info_failed',
       detail,
     });
   }
@@ -274,6 +299,7 @@ app.listen(PORT, () => {
   console.log(`\n[CardioProxy] escuchando en http://localhost:${PORT}`);
   console.log(`              POST /predict    → ${ENDPOINT_URL}`);
   console.log(`              GET  /dashboard  → ${process.env.DATABRICKS_SQL_HOST || '(SQL warehouse no configurado)'}`);
+  console.log(`              GET  /model-info → MLflow Registry (@champion)`);
   console.log(`              POST /analyze    → ${OPENAI_API_KEY ? `OpenAI (${OPENAI_MODEL})` : '(deshabilitado · falta OPENAI_API_KEY)'}`);
   console.log(`              GET  /health\n`);
 });

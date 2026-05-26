@@ -46,6 +46,7 @@ export interface DashboardRows {
   glucose: CategoryRow[];
   bmi: CategoryRow[];
   lifestyle: LifestyleRow[];
+  riskFactors: CategoryRow[];
 }
 
 // -- Queries (use unqualified table names; catalog/schema set on the session)
@@ -158,6 +159,32 @@ const QUERIES: Record<keyof DashboardRows, string> = {
       AVG(CASE WHEN NOT HasHypertension      AND HasCardiovascularDisease THEN 1.0 WHEN NOT HasHypertension      THEN 0.0 END)
     FROM fct_cardio_outcomes
   `,
+
+  // How CVD prevalence climbs as modifiable risk factors stack up. The four
+  // factors are: smoking, alcohol, being sedentary (NOT active) and
+  // hypertension — each contributes 1 to the count (0–4).
+  riskFactors: `
+    SELECT
+      factor_count                                                   AS id,
+      CASE factor_count
+        WHEN 0 THEN 'Sin factores'
+        WHEN 1 THEN '1 factor'
+        ELSE CONCAT(CAST(factor_count AS STRING), ' factores')
+      END                                                            AS label,
+      COUNT(*)                                                       AS patients,
+      AVG(CASE WHEN HasCardiovascularDisease THEN 1.0 ELSE 0.0 END)  AS cvd_rate
+    FROM (
+      SELECT
+        ( CASE WHEN IsSmoker              THEN 1 ELSE 0 END
+        + CASE WHEN DrinksAlcohol         THEN 1 ELSE 0 END
+        + CASE WHEN NOT IsPhysicallyActive THEN 1 ELSE 0 END
+        + CASE WHEN HasHypertension       THEN 1 ELSE 0 END )        AS factor_count,
+        HasCardiovascularDisease
+      FROM fct_cardio_outcomes
+    )
+    GROUP BY factor_count
+    ORDER BY factor_count
+  `,
 };
 
 // -- Helpers -----------------------------------------------------------------
@@ -212,6 +239,7 @@ async function runAll(): Promise<DashboardRows> {
     out.glucose     = await runQuery<CategoryRow>(session, 'glucose',     QUERIES.glucose);
     out.bmi         = await runQuery<CategoryRow>(session, 'bmi',         QUERIES.bmi);
     out.lifestyle   = await runQuery<LifestyleRow>(session,'lifestyle',   QUERIES.lifestyle);
+    out.riskFactors = await runQuery<CategoryRow>(session, 'riskFactors', QUERIES.riskFactors);
   } finally {
     await session.close().catch(() => {});
     await client.close().catch(() => {});
