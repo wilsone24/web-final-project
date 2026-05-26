@@ -55,6 +55,7 @@ export interface DashboardResponse {
   glucose: DashboardCategoryRow[];
   bmi: DashboardCategoryRow[];
   lifestyle: DashboardLifestyleRow[];
+  riskFactors: DashboardCategoryRow[];
 }
 
 // Form state (predict page)
@@ -74,3 +75,46 @@ export interface PredictFormState {
 
 export type ResultState = 'empty' | 'loading' | 'done' | 'error';
 export type DashboardState = 'loading' | 'ready' | 'error';
+
+// -- Model info payload (matches backend/mlflow.ts) -------------------------
+
+export interface ModelMetrics {
+  accuracy:  number | null;
+  precision: number | null;
+  recall:    number | null;
+  f1:        number | null;
+  roc_auc:   number | null;
+  pr_auc:    number | null;
+}
+
+export interface FeatureImportanceRow {
+  feature: string;
+  importance: number;
+}
+
+export interface ThresholdSweepRow {
+  threshold: number;
+  f1:        number;
+  precision: number;
+  recall:    number;
+}
+
+export interface ModelInfoResponse {
+  cached:             boolean;
+  cacheAgeMs:         number;
+  generatedAt:        string;
+  model_name:         string;
+  version:            string;
+  algorithm:          string;
+  optimal_threshold:  number | null;
+  pipeline_version:   string | null;
+  champion_since:     string | null;
+  training_run_id:    string | null;
+  description:        string | null;
+  metrics:            ModelMetrics;
+  feature_count:      number | null;
+  train_rows:         number | null;
+  test_rows:          number | null;
+  feature_importance: FeatureImportanceRow[];
+  threshold_sweep:    ThresholdSweepRow[];
+}

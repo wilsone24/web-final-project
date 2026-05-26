@@ -1,4 +1,4 @@
-import type { PredictionPayload, PredictionResult, DashboardResponse } from './types';
+import type { PredictionPayload, PredictionResult, DashboardResponse, ModelInfoResponse } from './types';
 
 // Llama al proxy local (que reenvía a Databricks añadiendo el bearer token).
 // En dev Vite hace proxy de /api → http://localhost:8000 (ver vite.config.ts).
@@ -41,6 +41,42 @@ export async function fetchDashboard(
   })();
 
   return dashboardInflight;
+}
+
+// -- /model-info -----------------------------------------------------------
+
+let modelInfoCache:    ModelInfoResponse | null = null;
+let modelInfoInflight: Promise<ModelInfoResponse> | null = null;
+
+export async function fetchModelInfo(
+  { refresh = false }: { refresh?: boolean } = {},
+): Promise<ModelInfoResponse> {
+  if (refresh) {
+    modelInfoCache    = null;
+    modelInfoInflight = null;
+  }
+
+  if (modelInfoCache)    return modelInfoCache;
+  if (modelInfoInflight) return modelInfoInflight;
+
+  const url = refresh ? '/api/model-info?refresh=1' : '/api/model-info';
+
+  modelInfoInflight = (async () => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`HTTP ${res.status} — ${text || res.statusText}`);
+      }
+      const data = (await res.json()) as ModelInfoResponse;
+      modelInfoCache = data;
+      return data;
+    } finally {
+      modelInfoInflight = null;
+    }
+  })();
+
+  return modelInfoInflight;
 }
 
 interface PredictApiRow {

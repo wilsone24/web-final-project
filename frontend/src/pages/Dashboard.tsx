@@ -1,9 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
-import { fetchDashboard } from '../api';
+import { fetchDashboard, fetchModelInfo } from '../api';
 import useReveal from '../hooks/useReveal';
 import { palette } from '../theme';
 import KpiCard from '../components/dashboard/KpiCard';
 import ChartCard from '../components/dashboard/ChartCard';
+import ModelCardBanner from '../components/dashboard/ModelCardBanner';
+import FeatureImportanceChart from '../components/dashboard/FeatureImportanceChart';
+import ThresholdSweepChart from '../components/dashboard/ThresholdSweepChart';
 import {
   CvdByCategoryChart,
   RateBarChart,
@@ -16,7 +19,10 @@ import type {
   DashboardLifestyleRow,
   DashboardKpi,
   DashboardState,
+  ModelInfoResponse,
 } from '../types';
+
+type ModelInfoState = 'loading' | 'ready' | 'error';
 
 const N = (v: unknown): number | null => {
   if (v === null || v === undefined) return null;
@@ -88,6 +94,43 @@ const ICON_REFRESH = (
   </svg>
 );
 
+const ICON_AUC = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 21h18" />
+    <path d="M3 21C7 21 9 5 21 5" />
+  </svg>
+);
+
+const ICON_F1 = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="9"  cy="9"  r="6" />
+    <circle cx="15" cy="15" r="6" />
+  </svg>
+);
+
+const ICON_TARGET = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="9" />
+    <circle cx="12" cy="12" r="5" />
+    <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+  </svg>
+);
+
+const ICON_RECALL = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 6h12a4 4 0 010 8H8" />
+    <path d="M8 10l-4 4 4 4" />
+  </svg>
+);
+
+const ICON_WARN = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 3l10 18H2z" />
+    <path d="M12 10v5" />
+    <circle cx="12" cy="18" r="0.8" fill="currentColor" />
+  </svg>
+);
+
 interface Meta {
   cached: boolean;
   generatedAt: string | null;
@@ -100,10 +143,17 @@ export default function Dashboard() {
   const [meta, setMeta]     = useState<Meta>({ cached: false, generatedAt: null });
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
+  // Model info is intentionally INDEPENDENT of the main dashboard state — if
+  // MLflow is unreachable we still render the analytics charts above and just
+  // show a small inline notice in place of the model section.
+  const [modelInfo, setModelInfo]           = useState<ModelInfoResponse | null>(null);
+  const [modelState, setModelState]         = useState<ModelInfoState>('loading');
+  const [modelError, setModelError]         = useState<string>('');
+
   // Re-run the reveal observer every time we transition state (e.g. loading
   // → ready), because the elements with .reveal are rendered conditionally
   // and don't exist on initial mount.
-  useReveal([state]);
+  useReveal([state, modelState]);
 
   const load = useCallback(async (refresh: boolean = false) => {
     try {
@@ -123,7 +173,23 @@ export default function Dashboard() {
     }
   }, []);
 
-  useEffect(() => { load(false); }, [load]);
+  const loadModel = useCallback(async (refresh: boolean = false) => {
+    try {
+      if (!refresh) setModelState('loading');
+      const json = await fetchModelInfo({ refresh });
+      setModelInfo(json);
+      setModelState('ready');
+    } catch (e) {
+      console.error('[Dashboard][model]', e);
+      setModelError(e instanceof Error ? e.message : String(e));
+      setModelState('error');
+    }
+  }, []);
+
+  useEffect(() => {
+    load(false);
+    loadModel(false);
+  }, [load, loadModel]);
 
   // -------- Loading --------
   if (state === 'loading') {
@@ -176,6 +242,7 @@ export default function Dashboard() {
   const glucData = normalizeCategoryRows(data?.glucose);
   const bmiData  = normalizeCategoryRows(data?.bmi);
   const lifeData = normalizeLifestyleRows(data?.lifestyle);
+  const riskData = normalizeCategoryRows(data?.riskFactors);
 
   const totalPatients = N(k.total_patients);
   const avgAge        = N(k.avg_age);
@@ -207,7 +274,7 @@ export default function Dashboard() {
             ) : null}
             <button
               className="btn btn-ghost btn-refresh"
-              onClick={() => load(true)}
+              onClick={() => { load(true); loadModel(true); }}
               disabled={refreshing}
               type="button"
             >
@@ -239,7 +306,7 @@ export default function Dashboard() {
           <KpiCard
             label="Edad promedio"
             value={avgAge}
-            format="decimal"
+            format="integer"
             icon={ICON_AGE}
             accent="secondary"
             sub="años"
@@ -331,11 +398,113 @@ export default function Dashboard() {
           >
             <LifestyleChart data={lifeData} />
           </ChartCard>
+
+          <ChartCard
+            eyebrow="Riesgo acumulado"
+            title="ECV según número de factores de riesgo"
+            subtitle="Factores: tabaquismo, alcohol, sedentarismo e hipertensión. La tasa de ECV escala al acumularlos."
+          >
+            <CvdByCategoryChart data={riskData} colorBase={palette.accent} accent={palette.cvd} />
+          </ChartCard>
         </div>
+
+        {/* ============================================================
+            Model section — model card + metrics + feature importance
+            Decoupled from the dashboard data so a model-registry hiccup
+            doesn't take the charts down with it.
+            ============================================================ */}
+        <div className="model-section-head reveal">
+          <span className="eyebrow">Sobre el modelo</span>
+          <h3>Modelo @champion en producción</h3>
+          <p>
+            Información del modelo activo: versión, algoritmo ganador, métricas de test y las
+            variables que más pesan en su decisión.
+          </p>
+        </div>
+
+        {modelState === 'ready' && modelInfo ? (
+          <>
+            <ModelCardBanner info={modelInfo} />
+
+            <div className="model-metrics-grid reveal">
+              <KpiCard
+                label="ROC-AUC"
+                value={modelInfo.metrics.roc_auc}
+                format="percent"
+                icon={ICON_AUC}
+                accent="primary"
+                sub="Capacidad de discriminar clases"
+              />
+              <KpiCard
+                label="F1 score"
+                value={modelInfo.metrics.f1}
+                format="percent"
+                icon={ICON_F1}
+                accent="secondary"
+                sub="Balance precisión / recall"
+              />
+              <KpiCard
+                label="Precisión"
+                value={modelInfo.metrics.precision}
+                format="percent"
+                icon={ICON_TARGET}
+                accent="accent"
+                sub="Acierto entre positivos predichos"
+              />
+              <KpiCard
+                label="Recall"
+                value={modelInfo.metrics.recall}
+                format="percent"
+                icon={ICON_RECALL}
+                accent="cvd"
+                sub="Cobertura de positivos reales"
+              />
+            </div>
+
+            <div className="model-chart-grid reveal">
+              <ChartCard
+                eyebrow="Interpretabilidad"
+                title="Variables más influyentes"
+                subtitle="Features ordenadas por su importancia (gain) según el modelo entrenado."
+              >
+                <FeatureImportanceChart data={modelInfo.feature_importance} />
+              </ChartCard>
+
+              <ChartCard
+                eyebrow="Calibración del umbral"
+                title="Precisión, recall y F1 vs umbral"
+                subtitle="Cómo varían las métricas al mover el umbral de decisión. La línea marca el umbral óptimo elegido."
+              >
+                <ThresholdSweepChart
+                  data={modelInfo.threshold_sweep}
+                  optimal={modelInfo.optimal_threshold}
+                />
+              </ChartCard>
+            </div>
+          </>
+        ) : modelState === 'loading' ? (
+          <div className="dashboard-loading glass reveal">
+            <div className="spinner"></div>
+            <p>Consultando el registro de MLflow…</p>
+          </div>
+        ) : (
+          <div className="model-section-error glass reveal">
+            <span className="err-icon">{ICON_WARN}</span>
+            <div>
+              <strong>No se pudo cargar la información del modelo.</strong>
+              <div style={{ fontSize: '0.84rem', color: 'var(--c-text-3)', marginTop: 4 }}>
+                {modelError ? <code>{modelError}</code> : 'Reintentando en el próximo refresh.'}
+              </div>
+            </div>
+          </div>
+        )}
 
         <p className="dashboard-footnote">
           Fuente: <code>databricks_service_pf.gold.fct_cardio_outcomes</code> · vista filtrada a registros vigentes (SCD2)
           de los últimos 3 años. Las dimensiones se enriquecen con <code>gold.dim_*</code>.
+          {modelInfo?.training_run_id ? (
+            <> · Modelo: <code>{modelInfo.model_name} v{modelInfo.version}</code></>
+          ) : null}
         </p>
       </div>
     </main>
