@@ -184,7 +184,7 @@ function mapRow(
   if (errors.length > 0) return { rowIndex, id, raw, payload: null, errors };
 
   const payload: PredictionPayload = {
-    age_years:            +age_years.toFixed(1),
+    age_years:            Math.round(age_years),
     gender,
     height_cm:            Math.round(height_cm),
     weight_kg:            +weight_kg.toFixed(1),
@@ -211,9 +211,9 @@ export function getMissingRequiredColumns(columnMap: Map<keyof PredictionPayload
 export function buildTemplateCSV(): string {
   const headers = ['id', ...CANONICAL_FIELDS];
   const sample = [
-    ['P001', 48.4, 1, 158, 71.0, 28.44, 110,  70, 1, 1, 0, 0, 1],
-    ['P002', 62.1, 2, 175, 90.0, 29.39, 150,  95, 2, 1, 1, 1, 0],
-    ['P003', 35.0, 1, 165, 58.0, 21.30, 115,  75, 1, 1, 0, 0, 1],
+    ['P001', 48, 1, 158, 71.0, 28.44, 110,  70, 1, 1, 0, 0, 1],
+    ['P002', 62, 2, 175, 90.0, 29.39, 150,  95, 2, 1, 1, 1, 0],
+    ['P003', 35, 1, 165, 58.0, 21.30, 115,  75, 1, 1, 0, 0, 1],
   ];
   return [headers.join(','), ...sample.map((r) => r.join(','))].join('\n');
 }

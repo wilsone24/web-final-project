@@ -278,7 +278,7 @@ export default function BatchPredict() {
         <div className="batch-loading">
           <div className="spinner" />
           <h3>Prediciendo {validRows.length.toLocaleString('es')} pacientes…</h3>
-          <p>El endpoint de Databricks puede tardar ~30s si está frío.</p>
+          <p>El endpoint de Databricks puede tardar hasta ~3 minutos si está frío.</p>
         </div>
       )}
 

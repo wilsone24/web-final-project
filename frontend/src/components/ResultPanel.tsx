@@ -110,7 +110,7 @@ export default function ResultPanel({
       <div className="result-loading">
         <div className="spinner"></div>
         <p>Analizando con el modelo XGBoost…</p>
-        <p className="loading-hint">Si es la primera predicción en un rato, el endpoint puede tardar ~30s en despertar.</p>
+        <p className="loading-hint">Si es la primera predicción en un rato, el endpoint puede tardar hasta ~3 minutos en despertar.</p>
       </div>
 
       <div className="result-done">

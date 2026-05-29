@@ -77,6 +77,7 @@ export default function PredictForm({ onSubmit, isLoading }: PredictFormProps) {
   function validate(): string {
     const { age, h, w, sys, dia } = computed;
     if (!Number.isFinite(age) || age < 1 || age > 120)  return 'Edad debe estar entre 1 y 120 años.';
+    if (!Number.isInteger(age))                          return 'La edad debe ser un número entero (sin decimales).';
     if (!Number.isFinite(h) || h < 100 || h > 250)      return 'Altura debe estar entre 100 y 250 cm.';
     if (!Number.isFinite(w) || w < 10 || w > 200)       return 'Peso debe estar entre 10 y 200 kg.';
     if (!Number.isFinite(sys) || sys < 60 || sys > 300) return 'Presión sistólica fuera del rango (60-300).';
@@ -88,7 +89,7 @@ export default function PredictForm({ onSubmit, isLoading }: PredictFormProps) {
   function buildPayload(): PredictionPayload {
     const { age, h, w, sys, dia, bmi } = computed;
     return {
-      age_years:            +age.toFixed(1),
+      age_years:            Math.round(age),
       gender:               parseInt(form.gender, 10),
       height_cm:            Math.round(h),
       weight_kg:            +w.toFixed(1),
@@ -134,7 +135,7 @@ export default function PredictForm({ onSubmit, isLoading }: PredictFormProps) {
         <div className="form-grid">
           <div className="field">
             <label htmlFor="age">Edad (años)</label>
-            <input id="age" type="number" className="input" min="1" max="120" step="0.1"
+            <input id="age" type="number" className="input" min="1" max="120" step="1"
                    placeholder="Ej: 52" value={form.age} onChange={set('age')} required />
           </div>
           <div className="field">

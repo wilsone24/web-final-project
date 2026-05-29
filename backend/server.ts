@@ -85,9 +85,10 @@ app.get('/model-info', async (req: Request, res: Response) => {
 // Retry transient connection errors (cold starts, brief network blips) with
 // exponential backoff. Node's default fetch connect-timeout is 10s, which is
 // too short for Databricks Model Serving cold starts (30-60s) — so on a
-// connect timeout we wait and retry up to a few times. The total worst-case
-// wait is ~55s which still feels acceptable while the frontend shows its
-// loading spinner.
+// connect timeout we wait and retry up to a few times. With the current
+// schedule the total worst-case wait is ~210s (3.5 min): the inter-attempt
+// pauses sum to 150s and each of the 6 attempts can burn ~10s on its connect
+// timeout. The frontend shows a loading spinner the whole time.
 
 const TRANSIENT_CODES = new Set([
   'UND_ERR_CONNECT_TIMEOUT',
@@ -105,7 +106,7 @@ function isTransientError(err: unknown): boolean {
 async function fetchWithRetry(
   url: string,
   init: RequestInit,
-  { tag, delays = [0, 10_000, 20_000] }: { tag: string; delays?: number[] },
+  { tag, delays = [0, 15_000, 30_000, 30_000, 30_000, 45_000] }: { tag: string; delays?: number[] },
 ): Promise<globalThis.Response> {
   let lastErr: unknown;
   for (let i = 0; i < delays.length; i++) {
@@ -152,7 +153,7 @@ app.post('/predict', async (req: Request<unknown, unknown, PredictBody>, res: Re
         },
         body: JSON.stringify(body),
       },
-      { tag: 'databricks /predict', delays: [0, 10_000, 20_000] },
+      { tag: 'databricks /predict', delays: [0, 15_000, 30_000, 30_000, 30_000, 45_000] },
     );
 
     const text        = await upstream.text();
@@ -171,7 +172,7 @@ app.post('/predict', async (req: Request<unknown, unknown, PredictBody>, res: Re
       error:  'upstream_unreachable',
       detail,
       hint:   wasTransient
-        ? 'El endpoint de Databricks probablemente está en cold start. Espera 30s y vuelve a intentar.'
+        ? 'El endpoint de Databricks probablemente está en cold start. Espera ~3 minutos y vuelve a intentar.'
         : undefined,
     });
   }
